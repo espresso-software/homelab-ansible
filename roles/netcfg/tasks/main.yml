@@ -1,0 +1,64 @@
+---
+- name: Check UFW status
+  ansible.builtin.shell: ufw status
+  register: ufw_status
+  no_log: true
+
+- name: Enable UFW
+  ansible.builtin.shell: ufw enable
+  when: "('Status: active' not in ufw_status.stdout) and ((is_jump | default(false)) or (restrict_ssh_from_lan | default(false)))"
+  ufw:
+    state: enabled
+    policy: allow
+
+- name: Allow SSH subnet
+  ansible.builtin.debug:
+    msg: "Allowing SSH from {{ allow_ssh_subnet }}"
+  when: allow_ssh_subnet is defined
+
+- name: Allow SSH from subnet
+  when: allow_ssh_subnet is defined
+  no_log: true
+  community.general.ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+    from_ip: "{{ allow_ssh_subnet }}"
+    comment: "Allow SSH from specific subnet"
+
+- name: Check for 50-cloud-init.yaml
+  ansible.builtin.stat:
+    path: /etc/netplan/50-cloud-init.yaml
+  register: netplan_file
+
+- name: Set netplan file permissions
+  when: netplan_file.stat.exists
+  ansible.builtin.file:
+    path: /etc/netplan/50-cloud-init.yaml
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set static ip
+  when: static_ip is defined
+  ansible.builtin.copy:
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          {{ ethernet.device }}:
+            dhcp4: false
+            addresses:
+              - "{{ static_ip }}/{{ network.subnet | split('/') | last }}"
+            routes:
+              - to: default
+                via: "{{ network.gateway }}"
+            nameservers:
+              addresses:
+                - "{{ network.dns1 }}"
+                - "{{ network.dns2 }}"
+                - 1.1.1.1
+                - 1.0.0.1
+    dest: /etc/netplan/99-nodecfg.yaml
+  notify: apply netplan

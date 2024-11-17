@@ -1,0 +1,50 @@
+---
+- name: Configure devops user
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    can_sudo: yes
+    user_name: devops
+    user_password: "{{ devops_password }}"
+  roles:
+    - user
+
+- name: Setup devops SSH configuration
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    user_name: devops
+    authorized_keys: "{{ ssh.devops.cert }}"
+  roles:
+    - ssh
+
+- name: Restrict SSH
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  tasks:
+    - name: Restrict SSH to allowed subnet
+      no_log: true
+      ansible.builtin.ufw:
+        rule: deny
+        port: 22
+        proto: tcp
+        comment: "Deny SSH from other IPs"
+
+    - name: Update UFW policy to deny
+      ansible.builtin.ufw:
+        policy: deny

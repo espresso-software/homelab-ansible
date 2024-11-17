@@ -1,0 +1,68 @@
+---
+- name: Install Common Dependencies
+  hosts:
+    - lab
+    - proxy
+  become: yes
+  gather_facts: yes
+  tags:
+    - dependencies
+  tasks:
+    - name: Udate apt cache
+      apt:
+        update_cache: yes
+      tags:
+        - dependencies
+    - name: Install common dependencies
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - apt-transport-https
+        - git
+        - jq
+        - uidmap
+        - ufw # TODO: Use physial firewall device instead of ufw on server
+
+- name: Create Ansible user
+  hosts:
+    - lab
+    - proxy
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ansible
+  vars:
+    can_sudo: yes
+    user_name: ansible
+  roles:
+    - user
+
+- name: Configure SSH server
+  hosts:
+    - lab
+    - proxy
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ansible
+  vars:
+    user_name: ansible
+    authorized_keys: "{{ ssh.ansible.cert }}"
+  roles:
+    - ssh
+
+- name: Networking configuration
+  hosts:
+    - lab
+    - proxy
+  become: yes
+  gather_facts: yes
+  tags:
+    - network
+  vars:
+    allow_ssh_subnet: "{{ network.identifier }}.{{ network.subnets.bastion }}"
+  roles:
+    - netcfg

@@ -64,7 +64,7 @@
           --token {{ agent_token }} \
           --unattended \
           --replace \
-          --runnergroup ansible-agent
+          --labels ansible
     
     - name: Check for existing agent service
       ansible.builtin.stat:

@@ -21,6 +21,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run ping check
-        run: ansible-playbook -i inventory/bootstrap.ini ping.yml
+        run: |
+          pwd
+          ls -la
+          ansible-playbook -i inventory/bootstrap.ini ping.yml
         
         

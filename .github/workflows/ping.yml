@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'true'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
 
       # Runs a single command using the runners shell
       - name: Run ping check

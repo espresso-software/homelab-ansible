@@ -1,0 +1,39 @@
+---
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    shell: /bin/bash
+    home: "/home/{{ user_name }}"
+    createhome: yes
+    state: present
+  failed_when: false # Ignore failure if user already exists
+
+- name: Set user password
+  no_log: true
+  ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | chpasswd 
+  when: user_password is defined
+
+- name: Remove user password
+  no_log: true
+  ansible.builtin.shell: passwd -d {{ user_name }}
+  when: user_name == 'ansible' and user_password is not defined
+
+- name: Add user to sudo group
+  when: can_sudo | default(false)
+  block:
+    - name: Add user to sudo group
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        groups: sudo
+        append: yes
+      failed_when: false # Ignore failure if user is already in sudo group
+    
+    - name: Allow passwordless sudo
+      ansible.builtin.lineinfile:
+        dest: "/etc/sudoers.d/{{ user_name }}"
+        line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+        owner: root
+        group: root
+        mode: 0440
+        create: yes
+      failed_when: false # Ignore failure if file already exists

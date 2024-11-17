@@ -1,0 +1,177 @@
+---
+- name: Install Dependencies
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - dependencies
+  tasks:
+    - name: Udate apt cache
+      apt:
+        update_cache: yes
+      tags:
+        - dependencies
+    - name: Install common dependencies
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - apt-transport-https
+        - git
+        - jq
+        - uidmap
+        - ufw # TODO: Use physial firewall device instead of ufw on server
+
+- name: Create devops user
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    can_sudo: yes
+    user_name: devops
+    user_password: "{{ devops_password }}"
+  roles:
+    - user
+
+- name: Setup devops SSH configuration
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    user_name: devops
+    authorized_keys: "{{ ssh.devops.authoized_keys }}"
+    ssh_key: "{{ ssh.devops.key }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    enable_root_login: yes
+  roles:
+    - ssh
+
+- name: Setup ansible user
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ansible
+  vars:
+    user_name: ansible
+  roles:
+    - user
+
+- name: Setup ansible SSH configuration
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ansible
+  vars:
+    user_name: ansible
+    ssh_key: "{{ ssh.ansible.key }}"
+    ssh_cert: "{{ ssh.ansible.cert }}"
+    enable_root_login: yes
+  roles:
+    - ssh
+
+#TODO: Require MFA for logins and sudos
+
+- name: Configure UFW
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - agent
+    - firewall
+  tasks:
+    - name: Check UFW status
+      ansible.builtin.shell: ufw status
+      register: ufw_status
+      no_log: true
+    - name: Enable UFW
+      when: "('Status: active' not in ufw_status.stdout) and ((is_jump | default(false)) or (restrict_ssh_from_lan | default(false)))"
+      ufw:
+        state: enabled
+        policy: allow
+    - name: Allow SSH from LAN
+      no_log: true
+      community.general.ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+        from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
+        comment: "Allow SSH from LAN"
+    - name: Set incoming policy to deny
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+    - name: Allow outgoing traffic for SSH and Proxy
+      community.general.ufw:
+        rule: allow
+        direction: out
+        to_ip: "{{ item.subnet }}"
+        proto: tcp
+        port: "{{ item.port }}"
+      with_items:
+        - { subnet: "{{ network.identifier }}.{{ network.subnets.homelab }}", port: 22 }
+        - { subnet: "{{ network.proxy | split(':') | first }}/32", port: "{{ network.proxy | split(':') | last }}" }
+    - name: Allow outgoing DNS traffic
+      community.general.ufw:
+        rule: allow
+        direction: out
+        to_ip: "{{ item }}"
+        port: 53
+      with_items:
+        - "{{ network.dns1 }}/32"
+        - "{{ network.dns2 }}/32"
+        - '1.1.1.1/32'
+        - '1.0.0.1/32'
+    - name: Set outgoing policy to deny
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: outgoing
+
+- name: Setup GitHub Actions Runner
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - agent
+  vars:
+    agent_user: ansible
+    agent_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      35306233633739363031313363343731656631346334663964353962326365616665653438633262
+      3765386561316331313931366530363763613233333237380a636664383662333133323864366435
+      34646463643564343034323162613664383234306436623730626533663065383433653038623064
+      6564623636643733390a396365303364646164663538323435326236313761346366636132366435
+      34343437326137383131373138303332386366623835313236383033643334393565
+    agent_url: https://github.com/espresso-software
+  roles:
+    - agent
+        
+- name: Setup ansible SSH configuration
+  hosts:
+    - jump
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+  vars:
+    enable_root_login: no
+  roles:
+    - ssh

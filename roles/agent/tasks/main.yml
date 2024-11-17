@@ -1,0 +1,77 @@
+---
+- name: Check for existing agent
+  ansible.builtin.stat:
+    path: /home/{{ agent_user }}/actions-runner/svc.sh
+  register: agent_svc
+
+- name: Setup proxy variables
+  ansible.builtin.lineinfile:
+    path: /home/{{ agent_user }}/actions-runner/.env
+    line: "{{ item }}://{{ network.proxy }}"
+    state: present
+  with_items:
+    - http_proxy=http
+    - https_proxy=http
+    - ftp_proxy=ftp
+    - proxy=http
+    - no_proxy=localhost,local.espresso.software
+
+- name: Install latest dependencies
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - apt-transport-https
+    - curl
+    - git
+    - jq
+    - python3-pip
+    - uidmap
+  tags:
+    - dependencies
+  
+- name: Pip install ansible
+  ansible.builtin.pip:
+    name: ansible
+    state: latest
+  tags:
+    - dependencies
+
+- name: Setup runner
+  when: agent_svc.stat.exists == false
+  block:
+    - name: Download github agent
+      ansible.builtin.get_url:
+        url: https://github.com/actions/runner/releases/download/v2.320.0/actions-runner-linux-x64-2.320.0.tar.gz
+        dest: /tmp/actions-runner.tar.gz
+        mode: 0644
+
+    - name: Extract agent
+      ansible.builtin.unarchive:
+        src: /tmp/actions-runner.tar.gz
+        dest: /home/{{ agent_user }}/actions-runner
+        remote_src: yes
+        mode: 0755
+      when: agent_svc.stat.exists == false
+    
+    - name: Configure agent
+      no_log: true
+      ansible.builtin.shell: |
+        cd /home/{{ agent_user }}/actions-runner
+        chmod +x *.sh
+        sudo -u {{ agent_user }} ./config.sh \
+          --url {{ agent_url }} \
+          --token {{ agent_token }} \
+          --unattended \
+          --replace \
+          --runnergroup ansible-agent
+    
+    - name: Check for existing agent service
+      ansible.builtin.stat:
+        path: /home/{{ agent_user }}/actions-runner/svc.sh
+    
+    - name: Install agent service
+      ansible.builtin.shell: |
+        cd /home/{{ agent_user }}/actions-runner
+        sudo ./svc.sh install {{ agent_user }}
+        sudo ./svc.sh start

@@ -1,0 +1,11 @@
+---
+- name: Ping all hosts
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Ping all hosts
+      ansible.builtin.ping:
+      register: result
+    - name: Print result
+      ansible.builtin.debug:
+        var: result

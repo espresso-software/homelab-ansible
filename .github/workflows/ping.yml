@@ -27,6 +27,6 @@ jobs:
         run: |
           pwd
           ls -la
-          ansible-playbook -i inventory/bootstrap.ini ping.yml
+          ansible-playbook -i inventory/hosts.ini ping.yml
         
         

@@ -1,7 +1,7 @@
 ---
 - name: Configure devops user
   hosts:
-    - cluster
+    - lab
   become: yes
   gather_facts: yes
   tags:
@@ -16,7 +16,7 @@
 
 - name: Setup devops SSH configuration
   hosts:
-    - cluster
+    - lab
   become: yes
   gather_facts: yes
   tags:
@@ -30,7 +30,7 @@
 
 - name: Restrict SSH
   hosts:
-    - cluster
+    - lab
   become: yes
   gather_facts: yes
   tags:

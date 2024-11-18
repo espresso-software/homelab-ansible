@@ -22,7 +22,7 @@
     - name: Setup user SSH key
       when: (ssh_key is defined) | default(false)
       ansible.builtin.copy:
-        content: "{{ ssh_key }}"
+        content: "{{ ssh_key }}\n"
         dest: "/home/{{ user_name }}/.ssh/id_ed25519"
         owner: "{{ user_name }}"
         group: "{{ user_name }}"

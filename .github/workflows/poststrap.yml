@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Ping
+name: Poststrap
 
 # Controls when the workflow will run
 on:
@@ -25,6 +25,6 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run ping check
         run: |
-          ansible-playbook -i inventory/hosts.ini ping.yml
+          ansible-playbook -i inventory/hosts.ini poststrap.yml
         
         

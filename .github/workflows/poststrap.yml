@@ -25,7 +25,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run post provisioning playbook
         run: |
-          echo ${{ secrets.VAULT_DECRYPT_TOKEN }} > /tmp/vault_pass
+          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
           ansible-playbook -i inventory/hosts.ini poststrap.yml --vault-password-file /tmp/vault_pass
           rm /tmp/vault_pass
         

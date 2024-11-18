@@ -9,8 +9,8 @@
   failed_when: false # Ignore failure if user already exists
 
 - name: Set user password
-  no_log: true
-  ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | chpasswd 
+  # no_log: true
+  ansible.builtin.shell: echo "{{ user_name }}:changeit" | chpasswd 
   when: user_password is defined
 
 - name: Remove user password

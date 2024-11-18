@@ -7,6 +7,8 @@
   tags:
     - ssh
     - devops
+  vars_files:
+    - roles/user/vars/main.yml
   vars:
     can_sudo: yes
     user_name: devops
@@ -22,6 +24,8 @@
   tags:
     - ssh
     - devops
+  vars_files:
+    - roles/ssh/vars/main.yml
   vars:
     user_name: devops
     authorized_keys: "{{ ssh.devops.cert }}"

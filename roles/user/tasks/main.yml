@@ -11,6 +11,7 @@
 - name: Set user password
   no_log: true
   ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | chpasswd
+  when: user_password is defined
   failed_when: false # Ignore failure if password is already set
 
 - name: Remove user password

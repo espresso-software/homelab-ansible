@@ -9,7 +9,7 @@
   failed_when: false # Ignore failure if user already exists
 
 - name: Check current password hash
-  amsible.builtin.shell: getent passwd {{ user_name }}
+  ansible.builtin.shell: getent passwd {{ user_name }}
   register: user_info
   changed_when: false
   no_log: true

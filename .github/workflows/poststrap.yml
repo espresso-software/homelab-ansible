@@ -6,6 +6,11 @@ name: Poststrap
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      hosts:
+        description: 'Hosts to run the playbook on'
+        required: true
+        default: 'all'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -25,6 +30,6 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run ping check
         run: |
-          ansible-playbook -i inventory/hosts.ini poststrap.yml
+          ansible-playbook -i inventory/hosts.ini poststrap.yml --limit ${{ github.event.inputs.hosts }}
         
         

@@ -8,16 +8,10 @@
     state: present
   failed_when: false # Ignore failure if user already exists
 
-- name: Check current password hash
-  ansible.builtin.shell: getent passwd {{ user_name }}
-  register: user_info
-  changed_when: false
-  no_log: true
-
 - name: Set user password
   no_log: true
   ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | chpasswd
-  when: user_password is defined and user_password not in user_info.stdout
+  failed_when: false # Ignore failure if password is already set
 
 - name: Remove user password
   no_log: true

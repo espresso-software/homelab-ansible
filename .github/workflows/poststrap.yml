@@ -28,8 +28,14 @@ jobs:
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
       # Runs a single command using the runners shell
-      - name: Run ping check
+      - name: Run post provisioning playbook
         run: |
-          ansible-playbook -i inventory/hosts.ini poststrap.yml --limit ${{ github.event.inputs.hosts }}
-        
+          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
+          ansible-playbook -i inventory/hosts.ini poststrap.yml --vault-password-file /tmp/vault_pass
+
+      # Always removes vault password
+      - name: Remove vault pass
+        if: always()
+        run: |
+          rm /tmp/vault_pass
         

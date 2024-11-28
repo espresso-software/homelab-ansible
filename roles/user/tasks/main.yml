@@ -8,10 +8,15 @@
     state: present
   failed_when: false # Ignore failure if user already exists
 
+- name: Check current password hash
+  ansible.builtin.command: "getent shadow {{ user_name }}"
+  register: shadow_entry
+  failed_when: false
+
 - name: Set user password
   no_log: true
   ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | chpasswd 
-  when: user_password is defined
+  when: user_password is defined or (shadow_entry.stdout and not user_password | password_hash('sha512') in shadow_entry.stdout)
 
 - name: Remove user password
   no_log: true

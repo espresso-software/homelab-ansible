@@ -5,7 +5,6 @@
   no_log: true
 
 - name: Enable UFW
-  ansible.builtin.shell: ufw enable
   when: "('Status: active' not in ufw_status.stdout) and ((is_jump | default(false)) or (restrict_ssh_from_lan | default(false)))"
   ufw:
     state: enabled

@@ -146,7 +146,7 @@
 
 - name: Setup GitHub Actions Runner
   hosts:
-    - jump
+    - bastion
   become: yes
   gather_facts: yes
   tags:
@@ -163,6 +163,9 @@
     agent_url: https://github.com/espresso-software
   roles:
     - agent
+
+#TODO: Setup Docker Swarm (tower)
+#TODO: Setup GitHub Actions Ansible Runner Docker Swarm Deployment (tower)
         
 - name: Setup ansible SSH configuration
   hosts:

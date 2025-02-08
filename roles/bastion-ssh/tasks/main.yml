@@ -1,0 +1,39 @@
+---
+- name: Enable Public Key Authentication
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?PubkeyAuthentication'
+    line: 'PubkeyAuthentication yes'
+    state: present
+  notify: restart ssh
+
+- name: Allow empty passwords
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?PermitEmptyPasswords'
+    line: 'PermitEmptyPasswords yes'
+    state: present
+  notify: restart ssh
+
+- name: Disable root login
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: restart ssh
+
+- name: Automatically logout inactive SSH sessions
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?ClientAliveInterval'
+    line: 'ClientAliveInterval 900'
+    state: present
+  notify: restart ssh
+
+- name: Automatically logout inactive users
+  ansible.builtin.lineinfile:
+    dest: /etc/profile
+    regexp: '^#?TMOUT'
+    line: 'TMOUT=900'
+    state: present

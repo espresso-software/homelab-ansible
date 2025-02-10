@@ -35,15 +35,15 @@
   roles:
     - user
 
-# - name: Configure internet proxy
-#   hosts:
-#     - bastions
-#   become: yes
-#   gather_facts: yes
-#   tags:
-#     - proxy
-#   roles:
-#     - proxy
+- name: Configure internet proxy
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - proxy
+  roles:
+    - use-proxy
 
 
 # - name: Configure firewall

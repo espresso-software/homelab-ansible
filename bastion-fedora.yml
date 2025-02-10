@@ -1,0 +1,51 @@
+---
+- name: Create Ansible User
+  hosts:
+    - tower
+  become: yes
+  gather_facts: yes
+  tags:
+    - ansible
+    - ssh
+    - users
+  vars:
+    can_sudo: no
+    user_name: ansible
+  roles:
+    - user
+
+- name: 
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - users
+  vars:
+    can_sudo: yes
+    user_name: devops
+    user_password: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      36383434663166646630313363393337396363623930656363633036666662313338326336663037
+      3137646561663732326366646538396632613561646334630a633532366361663832653535333832
+      61336636363230343361326266393165626333366534323863393637313637326533356661636265
+      3232373762656338650a393835306636363561343265336563666637343461396432306263623732
+      3238
+  roles:
+    - user
+
+# - name: Configure internet proxy
+#   hosts:
+#     - bastions
+#   become: yes
+#   gather_facts: yes
+#   tags:
+#     - proxy
+#   roles:
+#     - proxy
+
+
+# - name: Configure firewall
+
+# - name: Setup github actions runner

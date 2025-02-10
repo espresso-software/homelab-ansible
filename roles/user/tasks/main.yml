@@ -1,39 +1,57 @@
 ---
 - name: Create user
+  when: user_password is not defined
   ansible.builtin.user:
     name: "{{ user_name }}"
     shell: /bin/bash
     home: "/home/{{ user_name }}"
     createhome: yes
     state: present
-  failed_when: false # Ignore failure if user already exists
 
-- name: Set user password
-  no_log: true
-  ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | sudo chpasswd
+- name: Change the user password
   when: user_password is defined
+  block:
+    - name: Create temporary password file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .password
+      register: temp_password_file
+    
+    - name: Write password to file
+      no_log: true
+      ansible.builtin.copy:
+        content: "{{ user_name }}:{{ user_password }}\n"
+        dest: "{{ temp_password_file.path }}"
+        mode: 0600
+    
+    - name: Set user password
+      ansible.builtin.shell: chpasswd < {{ temp_password_file.path }}
+  always:
+    - name: Remove temporary password file
+      ansible.builtin.file:
+        path: "{{ temp_password_file.path }}"
+        state: absent
 
-- name: Remove user password
-  no_log: true
-  ansible.builtin.shell: passwd -d {{ user_name }}
-  when: user_name == 'ansible' and user_password is not defined
+- name: Lock user password
+  when: user_password is not defined
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    password: '!'
 
-- name: Add user to sudo group
+- name: Setup user for sudo
   when: can_sudo | default(false)
   block:
     - name: Add user to sudo group
       ansible.builtin.user:
         name: "{{ user_name }}"
-        groups: sudo
+        groups: wheel
         append: yes
-      failed_when: false # Ignore failure if user is already in sudo group
     
-    - name: Allow passwordless sudo
+    - name: Allow sudo
       ansible.builtin.lineinfile:
         dest: "/etc/sudoers.d/{{ user_name }}"
-        line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+        line: "{{ user_name }} ALL=(ALL) ALL"
         owner: root
         group: root
         mode: 0440
         create: yes
-      failed_when: false # Ignore failure if file already exists

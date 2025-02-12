@@ -40,6 +40,7 @@
   become: yes
   gather_facts: yes
   tags:
+    - devops
     - ssh
     - users
   vars:
@@ -73,6 +74,7 @@
   become: yes
   gather_facts: yes
   tags:
+    - ssh
     - firewall
   roles:
     - bastion-firewall

@@ -15,6 +15,7 @@
         state: file
         suffix: .password
       register: temp_password_file
+      changed_when: false
     
     - name: Write password to file
       no_log: true
@@ -22,14 +23,17 @@
         content: "{{ user_name }}:{{ user_password }}\n"
         dest: "{{ temp_password_file.path }}"
         mode: 0600
+      changed_when: false
     
     - name: Set user password
       ansible.builtin.shell: chpasswd < {{ temp_password_file.path }}
+      changed_when: false
   always:
     - name: Remove temporary password file
       ansible.builtin.file:
         path: "{{ temp_password_file.path }}"
         state: absent
+      changed_when: false
 
 - name: Lock user password
   when: user_password is not defined

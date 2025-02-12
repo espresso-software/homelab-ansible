@@ -10,7 +10,13 @@
     - name: Install yum-utils
       ansible.builtin.command: |
         yum install -y yum-utils
-        
+      register: yum_install
+      changed_when: yum_install.stdout != 'Nothing to do.'
+
+# - name: Configure SSH keys for Bootstrap user
+
+# - name: Configure SSH settings
+
 - name: Create Ansible User
   hosts:
     - tower
@@ -26,7 +32,9 @@
   roles:
     - user
 
-- name: 
+# - name: Configure Ansible SSH keys
+
+- name: Create DevOps User
   hosts:
     - bastions
   become: yes
@@ -46,6 +54,8 @@
       3238
   roles:
     - user
+
+# - name: Configure DevOps SSH keys
 
 - name: Configure internet proxy
   hosts:
@@ -68,3 +78,9 @@
     - bastion-firewall
 
 # - name: Setup github actions runner
+
+- hosts:
+    - bastions
+  tasks:
+    - debug:
+        msg: "Validate the server and remove the bootstrap user if all validations are successful"

@@ -10,16 +10,21 @@
   ansible.builtin.command: |
     yum remove -y \
       firewalld
+  register: yum_install
+  changed_when: yum_install.stdout != 'Nothing to do.'
 
 - name: install ufw
   ansible.builtin.command: |
     yum install -y \
       ufw
+  register: yum_install
+  changed_when: yum_install.stdout != 'Nothing to do.'
 
 - name: check if ufw is enabled
   ansible.builtin.command: ufw status
   register: ufw_status
   ignore_errors: yes
+  changed_when: false
 
 - name: enable ufw (startup)
   ansible.builtin.ufw:

@@ -1,4 +1,16 @@
 ---
+- name: Install yum-utils
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - yum
+  tasks:
+    - name: Install yum-utils
+      ansible.builtin.command: |
+        yum install -y yum-utils
+        
 - name: Create Ansible User
   hosts:
     - tower
@@ -45,7 +57,14 @@
   roles:
     - use-proxy
 
-
-# - name: Configure firewall
+- name: Configure firewall
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - firewall
+  roles:
+    - bastion-firewall
 
 # - name: Setup github actions runner

@@ -1,6 +1,5 @@
 ---
 - name: Create user
-  when: user_password is not defined
   ansible.builtin.user:
     name: "{{ user_name }}"
     shell: /bin/bash

@@ -60,9 +60,28 @@
   roles:
     - user
 
-- name: Create DevOps User
+- name: Create DevOps User - Tower
   hosts:
-    - bastions
+    - tower
+  become: yes
+  gather_facts: yes
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: yes
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    authorized_keys: |
+      {{ ssh.devops.cert}}
+  roles:
+    - user
+
+- name: Create DevOps User - Bastion
+  hosts:
+    - tunnel
+    # - ui
   become: yes
   gather_facts: yes
   tags:
@@ -101,6 +120,26 @@
     - firewall
   roles:
     - bastion-firewall
+
+- name: Allow SSH from Bastion to Tower
+  hosts:
+    - tower
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - firewall
+  tasks:
+    - name: allow ssh and cockpit inbound from Bastions
+      ansible.builtin.ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
+        comment: "{{ item.comment }}"
+      with_items:
+        - { port: 22, proto: 'tcp', comment: 'SSH' }
+        - { port: 9090, proto: 'tcp', comment: 'Cockpit' }
 
 #TODO: Docker Actions Runner
 

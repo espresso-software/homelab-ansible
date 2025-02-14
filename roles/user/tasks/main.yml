@@ -58,3 +58,38 @@
         group: root
         mode: 0440
         create: yes
+
+- name: Create SSH directory
+  ansible.builtin.file:
+    path: "/home/{{ user_name }}/.ssh"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0700
+
+- name: Setup user authorized keys
+  when: (authorized_keys is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ authorized_keys }}"
+    dest: "/home/{{ user_name }}/.ssh/authorized_keys"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0600
+
+- name: Setup user SSH key
+  when: (ssh_key is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ ssh_key }}\n"
+    dest: "/home/{{ user_name }}/.ssh/id_ed25519"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0600
+
+- name: Setup user SSH certificate
+  when: (ssh_cert is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ ssh_cert }}"
+    dest: "/home/{{ user_name }}/.ssh/id_ed25519.pub"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0644

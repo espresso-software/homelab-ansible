@@ -13,9 +13,35 @@
       register: yum_install
       changed_when: yum_install.stdout != 'Nothing to do.'
 
-# - name: Configure SSH keys for Bootstrap user
+- name: Configure SSH keys for Bootstrap user
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - users
+    - bootstrap
+  vars:
+    can_sudo: yes
+    user_name: bootstrap
+    user_password: "{{ bootstrap_password }}"
+    authorized_keys: |
+      "{{ ssh.gamer.windows }}"
+      "{{ ssh.gamer.linux }}"
+  roles:
+    - user
 
-# - name: Configure SSH settings
+- name: Configure SSH settings
+  hosts:
+    - bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh
 
 - name: Create Ansible User
   hosts:

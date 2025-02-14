@@ -36,23 +36,9 @@
   vars:
     can_sudo: yes
     user_name: ansible
-  roles:
-    - user
-
-- name: Configure SSH server
-  hosts:
-    - lab
-    - proxy
-  become: yes
-  gather_facts: yes
-  tags:
-    - ssh
-    - ansible
-  vars:
-    user_name: ansible
     authorized_keys: "{{ ssh.ansible.cert }}"
   roles:
-    - ssh
+    - user
 
 - name: Networking configuration
   hosts:

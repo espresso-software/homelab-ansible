@@ -24,4 +24,4 @@ while getopts ":v:l:t:" opt; do
   esac
 done
 
-ansible-playbook -v --vault-password-file $vault_password_file -i inventory/bootstrap.yml bastion-fedora.yml $extra_args
+ansible-playbook -v --vault-password-file $vault_password_file -i inventory/bootstrap.yml bastion.yml $extra_args

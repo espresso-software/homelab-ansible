@@ -1,41 +1,14 @@
 ---
 - name: Check for existing agent
   ansible.builtin.stat:
-    path: /home/{{ agent_user }}/actions-runner/svc.sh
+    path: "{{ agent_directory }}/svc.sh"
   register: agent_svc
-
-- name: Setup proxy variables
-  ansible.builtin.lineinfile:
-    path: /home/{{ agent_user }}/actions-runner/.env
-    line: "{{ item }}://{{ network.proxy }}"
-    state: present
-  with_items:
-    - http_proxy=http
-    - https_proxy=http
-    - ftp_proxy=ftp
-    - proxy=http
-    - no_proxy=localhost,local.espresso.software
-
-- name: Install latest dependencies
-  ansible.builtin.apt:
-    name: "{{ item }}"
-    state: latest
-  with_items:
-    - apt-transport-https
-    - curl
-    - git
-    - jq
-    - python3-pip
-    - uidmap
-  tags:
-    - dependencies
   
-- name: Pip install ansible
-  ansible.builtin.pip:
-    name: ansible
-    state: latest
-  tags:
-    - dependencies
+- name: Yum install ansible
+  ansible.builtin.command: |
+    yum install -y ansible
+  register: yum_install
+  changed_when: yum_install.stdout != 'Nothing to do.'
 
 - name: Setup runner
   when: agent_svc.stat.exists == false
@@ -46,32 +19,71 @@
         dest: /tmp/actions-runner.tar.gz
         mode: 0644
 
+    - name: Create agent directory
+      ansible.builtin.file:
+        path: "{{ agent_directory }}"
+        state: directory
+        owner: "{{ agent_user }}"
+        group: "{{ agent_user }}"
+        mode: 0777
+
     - name: Extract agent
       ansible.builtin.unarchive:
         src: /tmp/actions-runner.tar.gz
-        dest: /home/{{ agent_user }}/actions-runner
+        dest: "{{ agent_directory }}"
         remote_src: yes
         mode: 0755
-      when: agent_svc.stat.exists == false
+    
+    - name: Generate runtime token with post request
+      no_log: true
+      ansible.builtin.uri:
+        url: "{{ gh_api_url | default('https://api.github.com') }}/orgs/{{ gh_org | default('espresso-software') }}/actions/runners/registration-token"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ gh_token }}"
+          Accept: "application/vnd.github.{{ gh_api_version | default('v3') }}+json"
+          Content-Length: 0
+          Content-Type: "application/json"
+        status_code:
+          - 200
+          - 201
+      register: token_response
     
     - name: Configure agent
       no_log: true
       ansible.builtin.shell: |
-        cd /home/{{ agent_user }}/actions-runner
+        cd {{ agent_directory }}
         chmod +x *.sh
         sudo -u {{ agent_user }} ./config.sh \
           --url {{ agent_url }} \
-          --token {{ agent_token }} \
+          --token {{ token_response.json.token }} \
           --unattended \
           --replace \
           --labels ansible
     
     - name: Check for existing agent service
       ansible.builtin.stat:
-        path: /home/{{ agent_user }}/actions-runner/svc.sh
+        path: "{{ agent_directory }}/svc.sh"
+
+    - name: Setup proxy variables
+      ansible.builtin.lineinfile:
+        path: "{{ agent_directory }}/.env"
+        line: "{{ item }}://{{ network.proxy }}"
+        state: present
+      with_items:
+        - http_proxy=http
+        - https_proxy=http
+        - ftp_proxy=ftp
+        - proxy=http
+
+    - name: Setup no_proxy variables
+      ansible.builtin.lineinfile:
+        path: "{{ agent_directory }}/.env"
+        line: no_proxy=localhost,local.espresso.software,{{ network.identifier }}.{{ network.subnets.homelab }}
+        state: present
     
     - name: Install agent service
       ansible.builtin.shell: |
-        cd /home/{{ agent_user }}/actions-runner
+        cd {{ agent_directory }}
         sudo ./svc.sh install {{ agent_user }}
         sudo ./svc.sh start

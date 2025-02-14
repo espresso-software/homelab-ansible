@@ -153,7 +153,7 @@
     - agent
   vars:
     agent_user: ansible
-    agent_token: !vault |
+    gh_token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       31363162373335343336633366663062316566643036353838633131616536343938323464383839
       3866623931626632633133313732353232643239653137640a326231313632646261333337396366
@@ -164,8 +164,6 @@
   roles:
     - agent
 
-#TODO: Setup Docker Swarm (tower)
-#TODO: Setup GitHub Actions Ansible Runner Docker Swarm Deployment (tower)
         
 - name: Setup ansible SSH configuration
   hosts:

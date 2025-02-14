@@ -27,8 +27,8 @@
     user_name: bootstrap
     user_password: "{{ bootstrap_password }}"
     authorized_keys: |
-      "{{ ssh.gamer.windows }}"
-      "{{ ssh.gamer.linux }}"
+      {{ ssh.gamer.windows }}
+      {{ ssh.gamer.linux }}
   roles:
     - user
 
@@ -55,10 +55,10 @@
   vars:
     can_sudo: no
     user_name: ansible
+    ssh_cert: "{{ ssh.ansible.cert }}"
+    ssh_key: "{{ ssh.ansible.key }}"
   roles:
     - user
-
-# - name: Configure Ansible SSH keys
 
 - name: Create DevOps User
   hosts:
@@ -72,17 +72,14 @@
   vars:
     can_sudo: yes
     user_name: devops
-    user_password: !vault |
-      $ANSIBLE_VAULT;1.1;AES256
-      36383434663166646630313363393337396363623930656363633036666662313338326336663037
-      3137646561663732326366646538396632613561646334630a633532366361663832653535333832
-      61336636363230343361326266393165626333366534323863393637313637326533356661636265
-      3232373762656338650a393835306636363561343265336563666637343461396432306263623732
-      3238
+    user_password: "{{ ssh.devops.password }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    ssh_key: "{{ ssh.devops.key }}"
+    authorized_keys: |
+      {{ ssh.gamer.windows }}
+      {{ ssh.gamer.linux }}
   roles:
     - user
-
-# - name: Configure DevOps SSH keys
 
 - name: Configure internet proxy
   hosts:
@@ -105,7 +102,32 @@
   roles:
     - bastion-firewall
 
-# - name: Setup github actions runner
+#TODO: Docker Actions Runner
+
+- name: Setup GitHub Actions Runner
+  hosts:
+    - tower
+  become: yes
+  gather_facts: yes
+  tags:
+    - agent
+  vars:
+    agent_directory: /opt/gh-actions-runner
+    agent_user: ansible
+    agent_url: https://github.com/espresso-software
+    gh_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      66316365653831613531623562306663393136616438333335633436633137323065396563376532
+      3737343737303733643562306362626630346430613338310a316365336233303165306463383430
+      37636231633632383061613761623137383132373865303538393230353236336530363934383361
+      3865313965333665650a333364633961333237623339663066356534316134323731346435333763
+      37663866616237646639383962363431353933393530383333393935346534393265393065323633
+      30373933336630386634643035636135336436373730363432623038613461353261306337353937
+      34663266663734663062666362666632356530386465336563343734386161373665363435356466
+      38396165616234666164326537616139366531386336666331636130343030623238643039366363
+      3938
+  roles:
+    - agent
 
 - hosts:
     - bastions

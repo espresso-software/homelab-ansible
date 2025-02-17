@@ -43,7 +43,7 @@
   roles:
     - ssh
 
-- name: Create Ansible User
+- name: Create Ansible User - Tower
   hosts:
     - tower
   become: yes
@@ -61,6 +61,7 @@
     - user
 
 - name: Create DevOps User - Tower
+  # only allow ssh from the tunnel and ui bastions
   hosts:
     - tower
   become: yes
@@ -78,10 +79,27 @@
   roles:
     - user
 
-- name: Create DevOps User - Bastion
+- name: Create DevOps User - UI Bastion
+  hosts:
+    - ui
+  become: yes
+  gather_facts: yes
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: yes
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    ssh_key: "{{ ssh.devops.key }}"
+  roles:
+    - user
+
+- name: Create DevOps User - Tunnel
   hosts:
     - tunnel
-    # - ui
   become: yes
   gather_facts: yes
   tags:
@@ -121,25 +139,50 @@
   roles:
     - bastion-firewall
 
-- name: Allow SSH from Bastion to Tower
+- name: Allow VNC from LAN
   hosts:
-    - tower
+    - ui
   become: yes
   gather_facts: yes
   tags:
-    - ssh
+    - vnc
     - firewall
   tasks:
-    - name: allow ssh and cockpit inbound from Bastions
+    - name: allow VNC inbound from LAN
       ansible.builtin.ufw:
         rule: allow
-        port: "{{ item.port }}"
-        proto: "{{ item.proto }}"
+        port: 5900
+        proto: 'tcp'
         from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
-        comment: "{{ item.comment }}"
-      with_items:
-        - { port: 22, proto: 'tcp', comment: 'SSH' }
-        - { port: 9090, proto: 'tcp', comment: 'Cockpit' }
+        comment: 'VNC'
+    - name: Install VNC Server
+      ansible.builtin.command: |
+        yum install -y tigervnc-server
+      register: vnc_install
+      changed_when: vnc_install.stdout != 'Nothing to do.'
+    - name: Configure VNC Server
+      ansible.builtin.copy:
+        content: |
+          session=gnome
+          geometry=1920x1080
+          securitytypes=vncauth,tlsvnc
+        dest: /home/devops/.config/tigervnc/config
+        owner: devops
+        group: devops
+        mode: 0644
+    - name: Configure VNC users
+      ansible.builtin.copy:
+        content: |
+          :1=devops
+        dest: /home/devops/.vnc/passwd
+        owner: root
+        group: root
+        mode: 0644
+    - name: Start VNC Server
+      ansible.builtin.systemd:
+        name: vncserver@:1
+        enabled: yes
+        state: started
 
 #TODO: Docker Actions Runner
 

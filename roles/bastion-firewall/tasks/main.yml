@@ -45,7 +45,7 @@
   with_items: [4, 3, 2, 1]
 
 #TODO: Support changing this to only allow from the bastion subnet for the ansible tower
-- name: allow ssh and cockpit inbound from LAN
+- name: allow SSH from LAN
   ansible.builtin.ufw:
     rule: allow
     port: "{{ item.port }}"
@@ -54,7 +54,23 @@
     comment: "{{ item.comment }}"
   with_items:
     - { port: 22, proto: 'tcp', comment: 'SSH' }
-    - { port: 9090, proto: 'tcp', comment: 'Cockpit' }
+
+- name: allow SSH from Bastion
+  when: bastion_type == 'tower'
+  ansible.builtin.ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+    from_ip: "{{ network.identifier }}.{{ network.subnets.bastion }}"
+    comment: "Bastion SSH"
+
+- name: allow Cockpit from Bastion
+  when: bastion_type == 'tunnel' or bastion_type == 'tower'
+  ansible.builtin.ufw:
+    rule: allow
+    port: 9090
+    proto: tcp
+    from_ip: "{{ network.identifier }}.{{ network.subnets.bastion }}"
 
 - name: set ufw to default deny
   ansible.builtin.ufw:

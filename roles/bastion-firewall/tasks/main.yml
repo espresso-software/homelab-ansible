@@ -55,7 +55,7 @@
   with_items:
     - { port: 22, proto: 'tcp', comment: 'SSH' }
 
-- name: allow SSH from Bastion
+- name: allow SSH from Bastion - Tower
   when: bastion_type == 'tower'
   ansible.builtin.ufw:
     rule: allow
@@ -71,6 +71,7 @@
     port: 9090
     proto: tcp
     from_ip: "{{ network.identifier }}.{{ network.subnets.bastion }}"
+    comment: "Cockpit"
 
 - name: set ufw to default deny
   ansible.builtin.ufw:

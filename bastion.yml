@@ -80,6 +80,7 @@
     - user
 
 - name: Create DevOps User - UI Bastion
+  # only allow ssh from the ui bastions to the lab servers
   hosts:
     - ui
   become: yes
@@ -98,6 +99,8 @@
     - user
 
 - name: Create DevOps User - Tunnel
+  # allow ssh from the tunnel bastions to the lab servers
+  # allow ssh from personal LAN to the tunnel bastions
   hosts:
     - tunnel
   become: yes

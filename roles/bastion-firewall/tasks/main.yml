@@ -110,6 +110,16 @@
     comment: 'SSH to LAB'
     direction: out
 
+- name: allow outbound cockpit to lab servers
+  when: bastion_type == 'ui'
+  ansible.builtin.ufw:
+    rule: allow
+    port: 9090
+    proto: 'tcp'
+    to_ip: "{{ network.identifier }}.{{ network.subnets.homelab }}"
+    comment: 'Cockpit to LAB'
+    direction: out
+
 - name: limit outbound traffic
   ansible.builtin.ufw:
     policy: deny

@@ -154,7 +154,7 @@
     - name: allow VNC inbound from LAN
       ansible.builtin.ufw:
         rule: allow
-        port: 5900
+        port: 5901
         proto: 'tcp'
         from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
         comment: 'VNC'
@@ -163,6 +163,13 @@
         yum install -y tigervnc-server
       register: vnc_install
       changed_when: vnc_install.stdout != 'Nothing to do.'
+    - name: Create VNC Directory
+      ansible.builtin.file:
+        path: /home/devops/.config/tigervnc
+        state: directory
+        owner: devops
+        group: devops
+        mode: 0755
     - name: Configure VNC Server
       ansible.builtin.copy:
         content: |
@@ -177,7 +184,7 @@
       ansible.builtin.copy:
         content: |
           :1=devops
-        dest: /home/devops/.vnc/passwd
+        dest: /etc/tigervnc/vncserver.users
         owner: root
         group: root
         mode: 0644

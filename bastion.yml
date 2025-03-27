@@ -142,55 +142,47 @@
   roles:
     - bastion-firewall
 
-- name: Allow VNC from LAN
+- name: Allow RDP from LAN
   hosts:
     - ui
   become: yes
   gather_facts: yes
   tags:
-    - vnc
+    - rdp
     - firewall
   tasks:
-    - name: allow VNC inbound from LAN
+    - name: allow RDP inbound from LAN
       ansible.builtin.ufw:
         rule: allow
-        port: 5901
+        direction: "{{ item.direction | default('in') }}"
+        port: "{{ item.port }}"
         proto: 'tcp'
-        from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
-        comment: 'VNC'
-    - name: Install VNC Server
+        from_ip: "{{ item.subnet }}"
+        comment: "{{ item.comment }}"
+      with_items:
+        - { port: 3389, subnet: "{{ network.identifier }}.{{ network.subnets.lan }}", comment: 'RDP' }
+        - { port: 5910, subnet: "{{ ansible_host }}", comment: 'RDP - VNC' }
+        - { port: 5910, subnet: "127.0.0.1", comment: 'RDP - VNC', direction: 'out'}
+    - name: Install RDP Server
       ansible.builtin.command: |
-        yum install -y tigervnc-server
-      register: vnc_install
-      changed_when: vnc_install.stdout != 'Nothing to do.'
-    - name: Create VNC Directory
-      ansible.builtin.file:
-        path: /home/devops/.config/tigervnc
-        state: directory
+        yum install -y \
+          tigervnc-server \
+          xrdp \
+          @kde-desktop-environment
+      register: rdp_install
+      changed_when: rdp_install.stdout != 'Nothing to do.'
+    - name: Configure RDP Session - Devops
+      ansible.builtin.copy:
+        content: |
+          #!/bin/sh
+          dbus-launch --exit-with-session /usr/bin/startplasma-wayland
+        dest: /home/devops/startwm.sh
         owner: devops
         group: devops
         mode: 0755
-    - name: Configure VNC Server
-      ansible.builtin.copy:
-        content: |
-          session=gnome
-          geometry=1920x1080
-          securitytypes=vncauth,tlsvnc
-        dest: /home/devops/.config/tigervnc/config
-        owner: devops
-        group: devops
-        mode: 0644
-    - name: Configure VNC users
-      ansible.builtin.copy:
-        content: |
-          :1=devops
-        dest: /etc/tigervnc/vncserver.users
-        owner: root
-        group: root
-        mode: 0644
-    - name: Start VNC Server
+    - name: Start RDP Server
       ansible.builtin.systemd:
-        name: vncserver@:1
+        name: xrdp
         enabled: yes
         state: started
 

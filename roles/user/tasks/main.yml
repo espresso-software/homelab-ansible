@@ -44,10 +44,18 @@
 - name: Setup user for sudo
   when: can_sudo | default(false)
   block:
-    - name: Add user to sudo group
+    - name: Add user to sudo group - Fedora
+      when: ansible_os_family == 'RedHat'
       ansible.builtin.user:
         name: "{{ user_name }}"
         groups: wheel
+        append: yes
+    
+    - name: Add user to sudo group - Debian
+      when: ansible_os_family == 'Debian'
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        groups: sudo
         append: yes
     
     - name: Allow sudo

@@ -1,14 +1,14 @@
 ---
 - name: Install Common Dependencies
   hosts:
-    - lab
-    - proxy
+    - all
   become: yes
   gather_facts: yes
   tags:
     - dependencies
   tasks:
     - name: Udate apt cache
+      changed_when: false
       apt:
         update_cache: yes
       tags:
@@ -26,8 +26,7 @@
 
 - name: Create Ansible user
   hosts:
-    - lab
-    - proxy
+    - all
   become: yes
   gather_facts: yes
   tags:
@@ -40,10 +39,25 @@
   roles:
     - user
 
+- name: Create Devops user
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    can_sudo: yes
+    user_name: devops
+    authorized_keys: "{{ ssh.devops.cert }}"
+    user_password: "{{ ssh.devops.password }}"
+  roles:
+    - user
+
 - name: Networking configuration
   hosts:
-    - lab
-    - proxy
+    - all
   become: yes
   gather_facts: yes
   tags:

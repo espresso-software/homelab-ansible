@@ -10,7 +10,25 @@ on:
       hosts:
         description: 'Hosts to run the playbook on'
         required: true
-        default: 'all'
+        type: choice
+        options:
+          - all
+          - bastions
+          - test-k3s
+      hosts_file:
+        description: 'Hosts file to use'
+        required: true
+        type: choice
+        options:
+          - hosts.yml
+          - hosts.ini
+      playbook:
+        description: 'Playbook to run'
+        required: true
+        type: choice
+        options:
+          - ansible.yml
+          - poststrap.yml
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,15 +45,12 @@ jobs:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
-      # Runs a single command using the runners shell
       - name: Run post provisioning playbook
-        run: |
-          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-          ansible-playbook -i inventory/hosts.ini poststrap.yml --vault-password-file /tmp/vault_pass
-
-      # Always removes vault password
-      - name: Remove vault pass
-        if: always()
-        run: |
-          rm /tmp/vault_pass
+        uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: ${{ github.event.inputs.playbook }}
+          inventory_path: inventory/${{ github.event.inputs.hosts_file }}
+          hosts: ${{ github.event.inputs.hosts }}
         

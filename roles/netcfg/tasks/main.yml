@@ -3,27 +3,39 @@
   ansible.builtin.shell: ufw status
   register: ufw_status
   no_log: true
+  changed_when: false
 
-- name: Enable UFW
-  when: "('Status: active' not in ufw_status.stdout) and ((is_jump | default(false)) or (restrict_ssh_from_lan | default(false)))"
-  ufw:
-    state: enabled
-    policy: allow
-
-- name: Allow SSH subnet
-  ansible.builtin.debug:
-    msg: "Allowing SSH from {{ allow_ssh_subnet }}"
-  when: allow_ssh_subnet is defined
-
-- name: Allow SSH from subnet
-  when: allow_ssh_subnet is defined
-  no_log: true
-  community.general.ufw:
+- name: Initial UFW setup
+  when: "('Status: active' not in ufw_status.stdout)"
+  block:
+    - name: Enable UFW
+      ansible.builtin.ufw:
+        state: enabled
+        policy: allow
+    
+    - name: Allow SSH from LAN
+      ansible.builtin.ufw:
+        rule: allow
+        direction: in
+        port: 22
+        proto: tcp
+        from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
+        comment: "SSH from LAN"
+    
+- name: Allow SSH from Bastions
+  ansible.builtin.ufw:
     rule: allow
+    direction: in
     port: 22
     proto: tcp
-    from_ip: "{{ allow_ssh_subnet }}"
-    comment: "Allow SSH from specific subnet"
+    from_ip: "{{ network.identifier }}.{{ network.subnets.bastion }}"
+    comment: "SSH from Bastions"
+
+- name: Enforce UFW policy
+  ansible.builtin.ufw:
+    policy: deny
+    direction: incoming
+    comment: "Deny all incoming traffic"
 
 - name: Check for 50-cloud-init.yaml
   ansible.builtin.stat:

@@ -16,8 +16,8 @@ on:
         required: true
         type: choice
         options:
-          - hosts.ini
           - hosts.yml
+          - hosts.ini
       playbook:
         description: 'Playbook to run'
         required: true

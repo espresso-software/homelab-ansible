@@ -39,6 +39,7 @@
       notify: compile selinux policy
 
 - name: Allow auth for users without MFA tokens
+  when: ansible_os_family == 'RedHat'
   ansible.builtin.lineinfile:
     dest: /etc/pam.d/sudo
     regexp: '^#?auth\s+required\s+pam_google_authenticator.so'

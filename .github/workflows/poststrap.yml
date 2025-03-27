@@ -11,6 +11,20 @@ on:
         description: 'Hosts to run the playbook on'
         required: true
         default: 'all'
+      hosts_file:
+        description: 'Hosts file to use'
+        required: true
+        type: choice
+        options:
+          - hosts.ini
+          - hosts.yml
+      playbook:
+        description: 'Playbook to run'
+        required: true
+        type: choice
+        options:
+          - ansible.yml
+          - poststrap.yml
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -31,7 +45,9 @@ jobs:
       - name: Run post provisioning playbook
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-          ansible-playbook -i inventory/hosts.ini poststrap.yml --vault-password-file /tmp/vault_pass
+          ansible-playbook ${{ github.event.inputs.playbook }} --vault-password-file /tmp/vault_pass \
+            -i inventory/${{ github.event.inputs.hosts_file }} \
+            -l ${{ github.event.inputs.hosts }}
 
       # Always removes vault password
       - name: Remove vault pass

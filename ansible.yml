@@ -30,16 +30,16 @@
       ansible.builtin.ufw:
         policy: deny
 
-# - name: Delete Bootstrap user
-#   hosts:
-#     - all
-#   become: yes
-#   gather_facts: yes
-#   tags:
-#     - bootstrap
-#   tasks:
-#     - name: Remove bootstrap user
-#       ansible.builtin.user:
-#         name: bootstrap
-#         state: absent
-#         remove: yes
+- name: Delete Bootstrap user
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - bootstrap
+  tasks:
+    - name: Remove bootstrap user
+      ansible.builtin.user:
+        name: bootstrap
+        state: absent
+        remove: yes

@@ -18,7 +18,7 @@
       changed_when: false
     
     - name: Write password to file
-      no_log: true
+      # no_log: true
       ansible.builtin.copy:
         content: "{{ user_name }}:{{ user_password }}\n"
         dest: "{{ temp_password_file.path }}"

@@ -1,21 +1,13 @@
 ---
 - name: Restrict SSH
   hosts:
-    - all
+    - test-k3s
   become: yes
   gather_facts: yes
   tags:
     - ssh
     - firewall
   tasks:
-    - name: Restrict SSH to allowed subnet
-      no_log: true
-      ansible.builtin.ufw:
-        rule: deny
-        port: 22
-        proto: tcp
-        comment: "Deny SSH from other IPs"
-    
     - name: Delete Allow SSH from LAN
       ansible.builtin.ufw:
         rule: allow
@@ -26,18 +18,28 @@
         src: "{{ network.identifier }}.{{ network.subnets.lan }}"
         delete: yes
 
-    - name: Update UFW policy to deny
-      ansible.builtin.ufw:
-        policy: deny
-
-- name: Delete Bootstrap user
+- name: Cleanup Bootstrap Rules
   hosts:
     - all
   become: yes
   gather_facts: yes
   tags:
-    - bootstrap
+    - ssh
+    - firewall
+    - cleanup
   tasks:
+    - name: Restrict SSH to allowed subnet
+      no_log: true
+      ansible.builtin.ufw:
+        rule: deny
+        port: 22
+        proto: tcp
+        comment: "Deny SSH from other IPs"
+    
+    - name: Update UFW policy to deny
+      ansible.builtin.ufw:
+        policy: deny
+
     - name: Remove bootstrap user
       ansible.builtin.user:
         name: bootstrap

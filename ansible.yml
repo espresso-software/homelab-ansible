@@ -13,7 +13,7 @@
         rule: allow
         port: 22
         proto: tcp
-        comment: "Allow SSH from LAN"
+        comment: "SSH from LAN"
         direction: in
         src: "{{ network.identifier }}.{{ network.subnets.lan }}"
         delete: yes

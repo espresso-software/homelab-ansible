@@ -36,6 +36,7 @@
     can_sudo: yes
     user_name: ansible
     authorized_keys: "{{ ssh.ansible.cert }}"
+    user_password: "{{ ssh.ansible.password }}"
   roles:
     - user
 

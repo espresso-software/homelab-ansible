@@ -1,43 +1,78 @@
 ---
-- name: Enable Public Key Authentication
-  ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: '^#?PubkeyAuthentication'
-    line: 'PubkeyAuthentication yes'
-    state: present
-  notify: restart ssh
+- name: Install Google Authenticator - Fedora
+  when: ansible_os_family == 'RedHat'
+  block:
+    - name: Fedora Installation
+      ansible.builtin.command: |
+        dnf install -y \
+          google-authenticator \
+          qrencode \
+          policycoreutils-python-utils
+      register: google_authenticator_install
+      changed_when: google_authenticator_install.stdout != 'Nothing to do.'
+    
+    - name: Create SELinux directory
+      ansible.builtin.file:
+        path: /etc/selinux/local
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
 
-- name: Do not allow empty passwords
-  ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: '^#?PermitEmptyPasswords'
-    line: 'PermitEmptyPasswords no'
-    state: present
-  notify: restart ssh
+    #FIXME: SELinux policy does not work
+    - name: Create custom SELinux policy
+      ansible.builtin.copy:
+        dest: /etc/selinux/local/google-authenticator.te
+        content: |
+          module google-authenticator 1.0;
 
-- name: Disable root login
-  ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: '^#?PermitRootLogin'
-    line: 'PermitRootLogin no'
-    state: present
-  notify: restart ssh
+          require {
+            type sshd_t;
+            type var_run_t
+            class file execute;
+            class file read;
+          }
 
-- name: Ensure password authentication
-  ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: '^#?PasswordAuthentication'
-    line: 'PasswordAuthentication yes'
-    state: present
-  notify: restart ssh
+          allow sshd_t var_run_t:file execute;
+          allow sshd_t var_run_t:file read;
+      changed_when: true
+      notify: compile selinux policy
 
-- name: Set authentication methods
+- name: Allow auth for users without MFA tokens
   ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: '^#?AuthenticationMethods'
-    line: 'AuthenticationMethods publickey,password'
+    dest: /etc/pam.d/sudo
+    regexp: '^#?auth\s+required\s+pam_google_authenticator.so'
+    line: 'auth required pam_google_authenticator.so nullok'
     state: present
   notify: restart ssh
+  with_items:
+    - sshd
+    - sudo
+
+- name: Set SSH Options
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?{{ item.name }}'
+    line: '{{ item.name }} {{ item.value }}'
+    state: present
+  notify: restart ssh
+  with_items:
+    - name: ChallengeResponseAuthentication
+      value: 'yes'
+    - name: KbdInteractiveAuthentication
+      value: 'yes'
+    - name: UsePAM
+      value: 'yes'
+    - name: PubkeyAuthentication
+      value: 'yes'
+    - name: PasswordAuthentication
+      value: 'yes'
+    - name: PermitEmptyPasswords
+      value: 'no'
+    - name: PermitRootLogin
+      value: 'no'
+    - name: AuthenticationMethods
+      value: 'publickey,password publickey,keyboard-interactive'
 
 - name: Automatically logout inactive sessions
   ansible.builtin.lineinfile:

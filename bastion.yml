@@ -9,7 +9,8 @@
   tasks:
     - name: Install yum-utils
       ansible.builtin.command: |
-        yum install -y yum-utils
+        yum install -y \
+          yum-utils
       register: yum_install
       changed_when: yum_install.stdout != 'Nothing to do.'
 
@@ -142,49 +143,84 @@
   roles:
     - bastion-firewall
 
-- name: Allow RDP from LAN
-  hosts:
-    - ui
-  become: yes
-  gather_facts: yes
-  tags:
-    - rdp
-    - firewall
-  tasks:
-    - name: allow RDP inbound from LAN
-      ansible.builtin.ufw:
-        rule: allow
-        direction: "{{ item.direction | default('in') }}"
-        port: "{{ item.port }}"
-        proto: 'tcp'
-        from_ip: "{{ item.subnet }}"
-        comment: "{{ item.comment }}"
-      with_items:
-        - { port: 3389, subnet: "{{ network.identifier }}.{{ network.subnets.lan }}", comment: 'RDP' }
-        - { port: 5910, subnet: "{{ ansible_host }}", comment: 'RDP - VNC' }
-        - { port: 5910, subnet: "127.0.0.1", comment: 'RDP - VNC', direction: 'out'}
-    - name: Install RDP Server
-      ansible.builtin.command: |
-        yum install -y \
-          tigervnc-server \
-          xrdp \
-          @kde-desktop-environment
-      register: rdp_install
-      changed_when: rdp_install.stdout != 'Nothing to do.'
-    - name: Configure RDP Session - Devops
-      ansible.builtin.copy:
-        content: |
-          #!/bin/sh
-          dbus-launch --exit-with-session /usr/bin/startplasma-wayland
-        dest: /home/devops/startwm.sh
-        owner: devops
-        group: devops
-        mode: 0755
-    - name: Start RDP Server
-      ansible.builtin.systemd:
-        name: xrdp
-        enabled: yes
-        state: started
+# FIXME: RDP Server
+# - name: Allow RDP from LAN
+#   hosts:
+#     - ui
+#   become: yes
+#   gather_facts: yes
+#   tags:
+#     - rdp
+#     - firewall
+#   tasks:
+#     - name: allow RDP inbound from LAN
+#       ansible.builtin.ufw:
+#         rule: allow
+#         direction: "{{ item.direction | default('in') }}"
+#         port: "{{ item.port }}"
+#         proto: 'tcp'
+#         from_ip: "{{ item.subnet }}"
+#         comment: "{{ item.comment }}"
+#       with_items:
+#         - { port: 3389, subnet: "{{ network.identifier }}.{{ network.subnets.lan }}", comment: 'RDP' }
+#         - { port: 5901, subnet: "127.0.0.1", comment: 'RDP - VNC' }
+#         - { port: 5901, subnet: "{{ ansible_host }}", comment: 'RDP - VNC', direction: 'out'}
+#     - name: Install RDP Server
+#       ansible.builtin.command: |
+#         yum install -y \
+#           tigervnc-server \
+#           xrdp \
+#           @gnome-desktop \
+#           policycoreutils-python-utils
+#       register: rdp_install
+#       changed_when: rdp_install.stdout != 'Nothing to do.'
+#     - name: Configure VNC Server
+#       ansible.builtin.copy:
+#         remote_src: yes
+#         src: /lib/systemd/system/vncserver@.service
+#         dest: /etc/systemd/system/vncserver@.service
+#         owner: root
+#         group: root
+#         mode: 0644
+#     - name: Create VNC Directory - Devops
+#       ansible.builtin.file:
+#         path: /home/devops/.vnc 
+#         state: directory
+#         owner: devops
+#         group: devops
+#         mode: 0755
+#     - name: Configure VNC Startup - Devops
+#       ansible.builtin.copy:
+#         content: |
+#           #!/bin/sh
+#           env GNOME_SHELL_SESSION_MODE=classic dbus-launch --exit-with-session /usr/bin/gnome-session
+#         dest: /home/devops/startwm.sh
+#         owner: devops
+#         group: devops
+#         mode: 0755
+#     - name: Set XVNC Configuration
+#       ansible.builtin.lineinfile:
+#         path: /etc/xrdp/xrdp.ini
+#         line: "{{ item.name }}={{ item.value }}"
+#         regex: '^{{ item.name }}='
+#         state: present
+#       with_items:
+#         - name: port
+#           value: -1
+#         - name: IP
+#           value: "127.0.0.1"
+#     - name: Set SELinux policies
+#       become: yes
+#       ansible.builtin.command: "{{ item }}"
+#       with_items:
+#         - chcon --type=bin_t /usr/sbin/xrdp
+#         - chcon --type=bin_t /usr/sbin/xrdp-sesman
+#     - name: Start RDP Server
+#       ansible.builtin.systemd:
+#         name: xrdp
+#         enabled: yes
+#         state: started
+#       changed_when: false
 
 #TODO: Docker Actions Runner
 
@@ -218,3 +254,4 @@
   tasks:
     - debug:
         msg: "Validate the server and remove the bootstrap user if all validations are successful"
+      failed_when: false

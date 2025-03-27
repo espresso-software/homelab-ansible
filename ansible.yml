@@ -1,0 +1,35 @@
+---
+- name: Restrict SSH
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - firewall
+  tasks:
+    - name: Restrict SSH to allowed subnet
+      no_log: true
+      ansible.builtin.ufw:
+        rule: deny
+        port: 22
+        proto: tcp
+        comment: "Deny SSH from other IPs"
+
+    - name: Update UFW policy to deny
+      ansible.builtin.ufw:
+        policy: deny
+
+# - name: Delete Bootstrap user
+#   hosts:
+#     - all
+#   become: yes
+#   gather_facts: yes
+#   tags:
+#     - bootstrap
+#   tasks:
+#     - name: Remove bootstrap user
+#       ansible.builtin.user:
+#         name: bootstrap
+#         state: absent
+#         remove: yes

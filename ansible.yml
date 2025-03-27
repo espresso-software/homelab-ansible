@@ -18,16 +18,6 @@
         src: "{{ network.identifier }}.{{ network.subnets.lan }}"
         delete: yes
 
-- name: Cleanup Bootstrap Rules
-  hosts:
-    - all
-  become: yes
-  gather_facts: yes
-  tags:
-    - ssh
-    - firewall
-    - cleanup
-  tasks:
     - name: Restrict SSH to allowed subnet
       no_log: true
       ansible.builtin.ufw:

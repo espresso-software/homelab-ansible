@@ -56,6 +56,17 @@
   roles:
     - user
 
+- name: Configure SSH settings
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh
+
 - name: Networking configuration
   hosts:
     - all

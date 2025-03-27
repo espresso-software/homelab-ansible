@@ -6,34 +6,90 @@
     home: "/home/{{ user_name }}"
     createhome: yes
     state: present
-  failed_when: false # Ignore failure if user already exists
 
-- name: Set user password
-  no_log: true
-  ansible.builtin.shell: echo "{{ user_name }}:{{ user_password }}" | sudo chpasswd
+- name: Change the user password
   when: user_password is defined
+  block:
+    - name: Create temporary password file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .password
+      register: temp_password_file
+      changed_when: false
+    
+    - name: Write password to file
+      no_log: true
+      ansible.builtin.copy:
+        content: "{{ user_name }}:{{ user_password }}\n"
+        dest: "{{ temp_password_file.path }}"
+        mode: 0600
+      changed_when: false
+    
+    - name: Set user password
+      ansible.builtin.shell: chpasswd < {{ temp_password_file.path }}
+      changed_when: false
+  always:
+    - name: Remove temporary password file
+      ansible.builtin.file:
+        path: "{{ temp_password_file.path }}"
+        state: absent
+      changed_when: false
 
-- name: Remove user password
-  no_log: true
-  ansible.builtin.shell: passwd -d {{ user_name }}
-  when: user_name == 'ansible' and user_password is not defined
+- name: Lock user password
+  when: user_password is not defined
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    password: '!'
 
-- name: Add user to sudo group
+- name: Setup user for sudo
   when: can_sudo | default(false)
   block:
     - name: Add user to sudo group
       ansible.builtin.user:
         name: "{{ user_name }}"
-        groups: sudo
+        groups: wheel
         append: yes
-      failed_when: false # Ignore failure if user is already in sudo group
     
-    - name: Allow passwordless sudo
+    - name: Allow sudo
       ansible.builtin.lineinfile:
         dest: "/etc/sudoers.d/{{ user_name }}"
-        line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+        line: "{{ user_name }} ALL=(ALL) ALL"
         owner: root
         group: root
         mode: 0440
         create: yes
-      failed_when: false # Ignore failure if file already exists
+
+- name: Create SSH directory
+  ansible.builtin.file:
+    path: "/home/{{ user_name }}/.ssh"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0700
+
+- name: Setup user authorized keys
+  when: (authorized_keys is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ authorized_keys }}"
+    dest: "/home/{{ user_name }}/.ssh/authorized_keys"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0600
+
+- name: Setup user SSH key
+  when: (ssh_key is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ ssh_key }}\n"
+    dest: "/home/{{ user_name }}/.ssh/id_ed25519"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0600
+
+- name: Setup user SSH certificate
+  when: (ssh_cert is defined) | default(false)
+  ansible.builtin.copy:
+    content: "{{ ssh_cert }}"
+    dest: "/home/{{ user_name }}/.ssh/id_ed25519.pub"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: 0644

@@ -17,22 +17,18 @@
       39343261343535326330333038663234393563366639333733306333356636353534383066356137
       6638313631393634300a373737393737303931633439366638613533363930323565386132366137
       3663
+    authorized_keys: "{{ ssh.devops.cert }}" 
   roles:
     - user
 
-- name: Setup devops SSH configuration
+- name: Setup SSH configuration
   hosts:
     - lab
   become: yes
   gather_facts: yes
   tags:
     - ssh
-    - devops
-  vars_files:
-    - roles/ssh/vars/main.yml
-  vars:
-    user_name: devops
-    authorized_keys: "{{ ssh.devops.cert }}"
+    - ssh-cfg
   roles:
     - ssh
 

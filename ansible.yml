@@ -23,7 +23,7 @@
         proto: tcp
         comment: "Allow SSH from LAN"
         direction: in
-        src: "{{ allow_ssh_subnet }}"
+        src: "{{ network.identifier }}.{{ network.subnets.lan }}"
         delete: yes
 
     - name: Update UFW policy to deny

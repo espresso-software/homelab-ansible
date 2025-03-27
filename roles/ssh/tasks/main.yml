@@ -19,7 +19,7 @@
         group: root
         mode: 0755
 
-    #FIXME: SELinux policy does not work
+    #FIXME: Issue #9: SELinux policy does not work
     - name: Create custom SELinux policy
       ansible.builtin.copy:
         dest: /etc/selinux/local/google-authenticator.te

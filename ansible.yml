@@ -15,6 +15,16 @@
         port: 22
         proto: tcp
         comment: "Deny SSH from other IPs"
+    
+    - name: Delete Allow SSH from LAN
+      ansible.builtin.ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+        comment: "Allow SSH from LAN"
+        direction: in
+        src: "{{ allow_ssh_subnet }}"
+        delete: yes
 
     - name: Update UFW policy to deny
       ansible.builtin.ufw:

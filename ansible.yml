@@ -2,6 +2,7 @@
 - name: Restrict SSH
   hosts:
     - test-k3s
+    - game-k3s
   become: yes
   gather_facts: yes
   tags:

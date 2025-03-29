@@ -42,10 +42,10 @@
     - name: Update authorized keys
       when: item.authorized_keys is defined
       ansible.builtin.copy:
-        content: "{{ authorized_keys }}"
-        dest: "/home/{{ user_name }}/.ssh/authorized_keys"
-        owner: "{{ user_name }}"
-        group: "{{ user_name }}"
+        content: "{{ item.authorized_keys }}"
+        dest: "/home/{{ item.user_name }}/.ssh/authorized_keys"
+        owner: "{{ item.user_name }}"
+        group: "{{ item.user_name }}"
         mode: 0600
       with_items:
         - user_name: devops

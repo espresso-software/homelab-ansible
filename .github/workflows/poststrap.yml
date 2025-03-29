@@ -15,6 +15,7 @@ on:
           - all
           - bastions
           - test-k3s
+          - game-k3s
       hosts_file:
         description: 'Hosts file to use'
         required: true

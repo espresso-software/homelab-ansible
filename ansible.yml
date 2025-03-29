@@ -7,6 +7,8 @@
   tags:
     - ssh
     - firewall
+  vars_files:
+    - roles/user/vars/main.yml # For authorized_keys
   tasks:
     - name: Delete Allow SSH from LAN
       ansible.builtin.ufw:
@@ -35,3 +37,17 @@
         name: bootstrap
         state: absent
         remove: yes
+    
+    - name: Update authorized keys
+      when: item.authorized_keys is defined
+      ansible.builtin.copy:
+        content: "{{ authorized_keys }}"
+        dest: "/home/{{ user_name }}/.ssh/authorized_keys"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: 0600
+      with_items:
+        - user_name: devops
+          authorized_keys: "{{ ssh.devops.cert }}"
+        - user_name: ansible
+          authorized_keys: "{{ ssh.ansible.cert }}"

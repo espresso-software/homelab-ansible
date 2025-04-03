@@ -1,0 +1,20 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    {{ETHERNET_DEVICE}}:
+      dhcp4: false
+  vlans:
+    vlan:
+      id: {{VLAN_ID}}
+      link: {{ETHERNET_DEVICE}}
+      addresses:
+        - {{ADDRESS}}/16
+      routes:
+        - to: default
+          via: {{GATEWAY}}
+      nameservers:
+        addresses:
+          - {{GATEWAY}}
+          - 1.1.1.1
+          - 1.0.0.1

@@ -9,5 +9,5 @@
     - "http_proxy=http://{{ network.proxy }}"
     - "https_proxy=http://{{ network.proxy }}"
     - "ftp_proxy=ftp://{{ network.proxy }}"
-    - "no_proxy=local,local.espresso.software,{{ network.identifier }}.{{ network.subnet }}"
+    - "no_proxy=local,local.espresso.software,10.0.0.0/8"
   notify: reboot

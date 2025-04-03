@@ -1,0 +1,25 @@
+cache deny all
+
+logfile_rotate 5
+coredump_dir /dev/null
+
+http_port 3128
+
+acl SSL_ports port 443
+acl Safe_ports port 80		# http
+acl Safe_ports port 21		# ftp
+acl Safe_ports port 443		# https
+
+acl CONNECT method CONNECT
+
+{% for net in allow_nets %}
+acl localnet src {{ net }} # RFC1918 possible internal network
+{% endfor %}
+
+http_access deny !Safe_ports
+http_access deny CONNECT !SSL_ports
+http_access allow localhost manager
+http_access deny manager
+http_access allow localhost
+http_access allow localnet
+http_access deny all

@@ -1,7 +1,7 @@
 ---
 - name: Restrict SSH
   hosts:
-    - test-k3s
+    - all
   become: yes
   gather_facts: yes
   tags:

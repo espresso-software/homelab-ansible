@@ -1,4 +1,27 @@
 ---
+- name: Setup proxy
+  hosts:
+    - allow-list-proxies
+    - deny-list-proxies
+  become: yes
+  gather_facts: yes
+  serial:
+    - 2
+  tags:
+    - proxy
+  roles:
+    - proxy
+
+- name: Use proxy
+  hosts:
+    - use-proxy
+  become: yes
+  gather_facts: yes
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
 - name: Install Common Dependencies
   hosts:
     - all
@@ -22,7 +45,6 @@
         - git
         - jq
         - uidmap
-        - ufw # TODO: Use physial firewall device instead of ufw on server
 
 - name: Create Ansible user
   hosts:
@@ -74,7 +96,5 @@
   gather_facts: yes
   tags:
     - network
-  vars:
-    allow_ssh_subnet: "{{ network.identifier }}.{{ network.subnets.bastion }}"
   roles:
     - netcfg

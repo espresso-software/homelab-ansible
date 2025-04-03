@@ -51,7 +51,6 @@
     mode: 0600
 
 - name: Set static ip
-  when: static_ip is defined
   ansible.builtin.copy:
     content: |
       network:
@@ -61,7 +60,7 @@
           {{ ethernet.device }}:
             dhcp4: false
             addresses:
-              - "{{ static_ip }}/{{ network.subnet | split('/') | last }}"
+              - "{{ ansible_host }}/{{ network.subnet | split('/') | last }}"
             routes:
               - to: default
                 via: "{{ network.gateway }}"

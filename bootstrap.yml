@@ -56,17 +56,6 @@
   roles:
     - user
 
-- name: Configure SSH settings
-  hosts:
-    - all
-  become: yes
-  gather_facts: yes
-  tags:
-    - ssh
-    - ssh-cfg
-  roles:
-    - ssh
-
 - name: Networking configuration
   hosts:
     - all
@@ -78,3 +67,14 @@
     allow_ssh_subnet: "{{ network.identifier }}.{{ network.subnets.bastion }}"
   roles:
     - netcfg
+
+- name: Configure SSH settings
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh

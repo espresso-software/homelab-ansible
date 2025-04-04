@@ -16,6 +16,9 @@ while getopts ":i:e:g:a:" opt; do
     a )
       ADDR_SUFF=$OPTARG
       ;;
+    f )
+      HOST=$OPTARG
+      ;; 
     \? )
       echo "Invalid option: $OPTARG" 1>&2
       ;;
@@ -28,13 +31,16 @@ ADDRESS=10.${VLAN_ID}.${ADDR_SUFF}
 # Default gateway based on VLAN ID
 
 if [ -z "$VLAN_ID" ] || [ -z "$ETHERNET_DEVICE" ] || [ -z "$ADDR_SUFF" ]; then
-  echo "Usage: $0 -i <VLAN_ID> -e <ETHERNET_DEVICE> -a <ADDRESS>"
+  echo "Usage: $0 -i <VLAN_ID> -e <ETHERNET_DEVICE> -a <ADDRESS> [-f <HOST>]"
   exit 1
+fi
+if [ -z "$HOST" ]; then
+  HOST=$ADDRESS
 fi
 
 # Create new netplan configuration file from template
 mkdir -p $OUTPUT_DIR
-OUTPUT_FILE="$OUTPUT_DIR/netplan-$ADDRESS.yaml"
+OUTPUT_FILE="$OUTPUT_DIR/netplan-$HOST.yaml"
 sed -e "s/{{VLAN_ID}}/$VLAN_ID/g" \
     -e "s/{{ETHERNET_DEVICE}}/$ETHERNET_DEVICE/g" \
     -e "s/{{GATEWAY}}/$GATEWAY/g" \

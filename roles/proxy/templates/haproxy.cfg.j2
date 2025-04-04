@@ -1,0 +1,14 @@
+frontend proxy-frontend
+    bind *:443
+    mode tcp
+    option tcplog
+    default_backend proxy-backend
+
+backend proxy-backend
+    mode tcp
+    option tcpcheck
+    balance leastconn
+    default-server inter 5s downinter 5s
+{% for server in proxy_servers %}
+    server {{ server.name }} {{ server.ip }}:{{ proxy_port | default(3128) }} check
+{% endfor %}

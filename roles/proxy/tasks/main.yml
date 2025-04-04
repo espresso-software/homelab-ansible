@@ -22,7 +22,6 @@
     state: started
 
 - name: Configure Keepalived
-  when: (keepalived.servers | length) > 1
   ansible.builtin.template:
     src: keepalived.conf.j2
     dest: /etc/keepalived/keepalived.conf
@@ -30,3 +29,12 @@
     group: root
     mode: 0640
   notify: Restart Keepalived
+
+- name: Configure HAProxy
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0640
+  notify: Restart HAProxy

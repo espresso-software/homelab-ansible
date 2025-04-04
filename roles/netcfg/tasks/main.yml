@@ -14,6 +14,9 @@
 
 - name: Set static ip
   ansible.builtin.copy:
+    owner: root
+    group: root
+    mode: 0600
     content: |
       network:
         version: 2
@@ -23,7 +26,7 @@
             dhcp4: false
         vlans:
           vlan:
-            id: {{ network.vlan_id }}
+            id: {{ vlan_id }}
             link: {{ ethernet.device }}
             addresses:
               - "{{ ansible_hostname }}/{{ network.subnet }}"

@@ -6,7 +6,7 @@ frontend proxy-frontend
 
 backend proxy-backend
     mode tcp
-    option tcpcheck
+    option tcp-check
     balance leastconn
     default-server inter 5s downinter 5s
 {% for server in proxy_servers %}

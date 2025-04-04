@@ -10,3 +10,9 @@
     name: keepalived
     state: restarted
     enabled: yes
+
+- name: Restart HAProxy
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+    enabled: yes

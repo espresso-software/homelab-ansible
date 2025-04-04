@@ -1,5 +1,5 @@
 frontend proxy-frontend
-    bind *:443
+    bind *:{{ network.proxy | split(':') | last }}
     mode tcp
     option tcplog
     default_backend proxy-backend

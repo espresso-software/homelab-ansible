@@ -29,7 +29,7 @@
             id: {{ vlan_id }}
             link: {{ ethernet.device }}
             addresses:
-              - "{{ ansible_hostname }}/{{ network.subnet }}"
+              - "{{ ansible_host }}/{{ network.subnet }}"
             routes:
               - to: default
                 via: "{{ network.gateway }}"

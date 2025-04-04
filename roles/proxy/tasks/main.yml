@@ -2,6 +2,7 @@
 - name: Install Dependencies
   ansible.builtin.apt:
     name:
+      - haproxy
       - keepalived
       - squid
     state: latest

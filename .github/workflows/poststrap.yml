@@ -31,6 +31,11 @@ on:
           - ansible.yml
           - poststrap.yml
           - bootstrap.yml
+      tags:
+        description: 'Tags to run'
+        required: false
+        type: string
+        default: ''
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -55,4 +60,5 @@ jobs:
           playbook_path: ${{ github.event.inputs.playbook }}
           inventory_path: inventory/${{ github.event.inputs.hosts_file }}
           hosts: ${{ github.event.inputs.hosts }}
+          tags: ${{ github.event.inputs.tags }}
         

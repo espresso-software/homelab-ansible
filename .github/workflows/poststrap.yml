@@ -28,9 +28,8 @@ on:
         required: true
         type: choice
         options:
-          - ansible.yml
-          - poststrap.yml
           - bootstrap.yml
+          - post-provisioning.yml
       tags:
         description: 'Tags to run'
         required: false

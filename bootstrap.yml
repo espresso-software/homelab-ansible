@@ -1,7 +1,19 @@
 ---
+- name: Setup proxy
+  hosts:
+    - proxies
+  become: yes
+  gather_facts: yes
+  serial:
+    - 2
+  tags:
+    - proxy
+  roles:
+    - proxy
+
 - name: Use proxy
   hosts:
-    - use-proxy
+    - all:!proxies:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -11,7 +23,7 @@
 
 - name: Install Common Dependencies
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -35,7 +47,7 @@
 
 - name: Create Ansible user
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -51,7 +63,7 @@
 
 - name: Create Devops user
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -67,7 +79,7 @@
 
 - name: Configure SSH settings
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -78,7 +90,7 @@
 
 - name: Networking configuration
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:

@@ -22,7 +22,7 @@ on:
         type: choice
         options:
           - hosts.yml
-          - hosts.ini
+          - bootstrap.yml
       playbook:
         description: 'Playbook to run'
         required: true

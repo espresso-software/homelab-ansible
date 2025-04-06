@@ -1,0 +1,14 @@
+---
+- name: Restrict SSH
+  hosts:
+    - all
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+  tasks:
+    - name: Remove bootstrap user
+      ansible.builtin.user:
+        name: bootstrap
+        state: absent
+        remove: yes

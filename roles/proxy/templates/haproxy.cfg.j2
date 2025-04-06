@@ -1,0 +1,29 @@
+frontend proxy-http
+    bind *:80
+    mode tcp
+    option tcplog
+    default_backend squid-http
+
+frontend proxy-https
+    bind *:443
+    mode tcp
+    option tcplog
+    default_backend squid-https
+
+backend squid-http
+    mode tcp
+    option tcp-check
+    balance leastconn
+    default-server inter 5s downinter 5s
+{% for server in proxy_servers %}
+    server {{ server.name }} {{ server.ip }}:{{ http_port | default(3128) }} check send-proxy-v2 check-send-proxy
+{% endfor %}
+
+backend squid-https
+    mode tcp
+    option tcp-check
+    balance leastconn
+    default-server inter 5s downinter 5s
+{% for server in proxy_servers %}
+    server {{ server.name }} {{ server.ip }}:{{ https_port | default(3129) }} check send-proxy-v2 check-send-proxy
+{% endfor %}

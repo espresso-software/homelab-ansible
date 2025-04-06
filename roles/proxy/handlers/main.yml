@@ -1,0 +1,18 @@
+---
+- name: restart squid
+  ansible.builtin.systemd:
+    name: squid
+    state: restarted
+    enabled: yes
+
+- name: Restart Keepalived
+  ansible.builtin.service:
+    name: keepalived
+    state: restarted
+    enabled: yes
+
+- name: Restart HAProxy
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+    enabled: yes

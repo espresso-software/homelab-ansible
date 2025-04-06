@@ -1,7 +1,17 @@
 ---
+- name: Use proxy
+  hosts:
+    - all:!proxies:!bastions
+  become: yes
+  gather_facts: yes
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
 - name: Install Common Dependencies
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -22,11 +32,10 @@
         - git
         - jq
         - uidmap
-        - ufw # TODO: Use physial firewall device instead of ufw on server
 
 - name: Create Ansible user
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -42,7 +51,7 @@
 
 - name: Create Devops user
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -58,7 +67,7 @@
 
 - name: Configure SSH settings
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
@@ -69,12 +78,10 @@
 
 - name: Networking configuration
   hosts:
-    - all
+    - all:!bastions
   become: yes
   gather_facts: yes
   tags:
     - network
-  vars:
-    allow_ssh_subnet: "{{ network.identifier }}.{{ network.subnets.bastion }}"
   roles:
     - netcfg

@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Poststrap
+name: Playbook
 
 # Controls when the workflow will run
 on:
@@ -13,22 +13,32 @@ on:
         type: choice
         options:
           - all
-          - bastions
+          - game-k3s
+          - tools-k3s
+          - build-k3s
           - test-k3s
+          - bastions
+          - proxies
       hosts_file:
         description: 'Hosts file to use'
         required: true
         type: choice
         options:
           - hosts.yml
-          - hosts.ini
+          - bootstrap.yml
       playbook:
         description: 'Playbook to run'
         required: true
         type: choice
         options:
-          - ansible.yml
-          - poststrap.yml
+          - bootstrap.yml
+          - proxy.yml
+          - post-provisioning.yml
+      tags:
+        description: 'Tags to run'
+        required: false
+        type: string
+        default: ''
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -53,4 +63,5 @@ jobs:
           playbook_path: ${{ github.event.inputs.playbook }}
           inventory_path: inventory/${{ github.event.inputs.hosts_file }}
           hosts: ${{ github.event.inputs.hosts }}
+          tags: ${{ github.event.inputs.tags }}
         

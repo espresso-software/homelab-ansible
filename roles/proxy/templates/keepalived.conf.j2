@@ -1,0 +1,21 @@
+vrrp_script check_haproxy {
+    script "killall -0 haproxy"
+    interval 2
+    weight 2
+}
+
+vrrp_instance proxy_vip {
+    state {{ keepalived.state }}
+    interface vlan
+    priority {{ keepalived.priority }}
+
+    virtual_router_id {{ vlan_id }}
+
+    virtual_ipaddress {
+        {{ network.identifier }}.206.0/16
+    }
+
+    track_script {
+        check_haproxy
+    }
+}

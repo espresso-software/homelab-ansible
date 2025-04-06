@@ -1,0 +1,52 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Post-provisioning
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      hosts:
+        description: 'Hosts to run the playbook on'
+        required: true
+        type: choice
+        options:
+          - all
+          - game-k3s
+          - tools-k3s
+          - build-k3s
+          - test-k3s
+          - bastions
+          - proxies
+      tags:
+        description: 'Tags to run'
+        required: false
+        type: string
+        default: ''
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ['self-hosted', 'ansible']
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+
+      - name: Run post provisioning playbook
+        uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: post-provisioning.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.hosts }}
+          tags: ${{ github.event.inputs.tags }}
+        

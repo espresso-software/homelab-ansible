@@ -1,0 +1,13 @@
+---
+- name: Setup proxy
+  hosts:
+    - allow-list-proxies
+    - deny-list-proxies
+  become: yes
+  gather_facts: yes
+  serial:
+    - 2
+  tags:
+    - proxy
+  roles:
+    - proxy

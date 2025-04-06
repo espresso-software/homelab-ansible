@@ -6,7 +6,7 @@ vrrp_script check_haproxy {
 
 vrrp_instance proxy_vip {
     state {{ keepalived.state }}
-    interface {{ ethernet.device}}
+    interface vlan
     priority {{ keepalived.priority }}
 
     virtual_router_id {{ vlan_id }}

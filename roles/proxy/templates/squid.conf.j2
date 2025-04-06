@@ -12,8 +12,8 @@ acl Safe_ports port 443		# https
 
 acl CONNECT method CONNECT
 
-{% for net in allow_nets %}
-acl localnet src {{ net }} # RFC1918 possible internal network
+{% for source in allow_nets %}
+acl {{ source.name }} src {{ source.net }}
 {% endfor %}
 
 http_access deny !Safe_ports

@@ -3,7 +3,7 @@ cache deny all
 logfile_rotate 5
 coredump_dir /dev/null
 
-acl loadbalancer src {{ network.identifier }}.206.0
+acl loadbalancer src {{ network.identifier }}.206.0/24
 
 http_port {{ http_port | default(3128) }} require-proxy-header
 

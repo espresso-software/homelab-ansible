@@ -29,6 +29,7 @@ on:
         type: choice
         options:
           - bootstrap.yml
+          - proxy.yml
           - post-provisioning.yml
       tags:
         description: 'Tags to run'

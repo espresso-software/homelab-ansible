@@ -10,15 +10,8 @@ on:
       hosts:
         description: 'Hosts to run the playbook on'
         required: true
-        type: choice
-        options:
-          - all
-          - game-k3s
-          - tools-k3s
-          - build-k3s
-          - test-k3s
-          - bastions
-          - proxies
+        type: string
+        default: 'all'
       hosts_file:
         description: 'Hosts file to use'
         required: true

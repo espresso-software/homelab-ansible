@@ -2,8 +2,8 @@
 
 set -e
 
-TEMPLATE="netplan/template.yml"
-OUTPUT_DIR="netplan/output"
+TEMPLATE="scripts/netplan/template.yml"
+OUTPUT_DIR="scripts/netplan/output"
 
 while getopts ":i:e:g:a:" opt; do
   case ${opt} in

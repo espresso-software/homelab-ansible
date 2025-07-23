@@ -9,7 +9,7 @@ vrrp_instance proxy_vip {
     interface vlan
     priority {{ keepalived.priority }}
 
-    virtual_router_id {{ vlan_id }}
+    virtual_router_id {{ network.vlan }}
 
     virtual_ipaddress {
         {{ network.identifier }}.206.0/16

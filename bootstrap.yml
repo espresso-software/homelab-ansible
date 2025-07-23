@@ -13,7 +13,7 @@
 
 - name: Use proxy
   hosts:
-    - all:!proxies:!bastions
+    - all:!proxies
   become: yes
   gather_facts: yes
   tags:

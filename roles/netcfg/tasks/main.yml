@@ -26,7 +26,7 @@
             dhcp4: false
         vlans:
           vlan:
-            id: {{ vlan_id }}
+            id: {{ network.vlan }}
             link: {{ ethernet.device }}
             addresses:
               - "{{ ansible_host }}/{{ network.subnet }}"
@@ -35,8 +35,8 @@
                 via: "{{ network.gateway }}"
             nameservers:
               addresses:
-                - "{{ network.dns1 }}"
-                - "{{ network.dns2 }}"
+                - "{{ primary_dns }}"
+                - "{{ secondary_dns }}"
                 - 1.1.1.1
                 - 1.0.0.1
     dest: /etc/netplan/99-nodecfg.yaml

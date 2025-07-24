@@ -35,8 +35,7 @@
                 via: "{{ network.gateway }}"
             nameservers:
               addresses:
-                - "{{ primary_dns }}"
-                - "{{ secondary_dns }}"
+                - "{{ network.gateway }}"
                 - 1.1.1.1
                 - 1.0.0.1
     dest: /etc/netplan/99-nodecfg.yaml

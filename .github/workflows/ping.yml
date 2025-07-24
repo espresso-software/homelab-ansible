@@ -6,15 +6,38 @@ name: Ping
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      hosts:
+        description: 'Hosts to run the playbook on'
+        required: true
+        type: choice
+        options:
+          - all
+          - game-k3s
+          - tools-k3s
+          - build-k3s
+          - test-k3s
+          - bastions
+          - proxies
+      hosts_file:
+        description: 'Hosts file to use'
+        required: true
+        type: choice
+        options:
+          - bootstrap.yml
+          - hosts.yml
+      tags:
+        description: 'Tags to run'
+        required: false
+        type: string
+        default: ''
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   deploy:
     # The type of runner that the job will run on
-    runs-on:
-      - self-hosted
-      - ansible
+    runs-on: ['self-hosted', 'ansible']
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -24,9 +47,12 @@ jobs:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
-      # Runs a single command using the runners shell
-      - name: Run ping check
-        run: |
-          ansible-playbook -i inventory/hosts.ini ping.yml
-        
-        
+      - name: Run post provisioning playbook
+        uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: ping.yml
+          inventory_path: inventory/${{ github.event.inputs.hosts_file }}
+          hosts: ${{ github.event.inputs.hosts }}
+          tags: ${{ github.event.inputs.tags }}

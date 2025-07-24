@@ -21,7 +21,6 @@
         - git
         - jq
         - uidmap
-        - ufw # TODO: Use physial firewall device instead of ufw on server
 
 - name: Create devops user
   hosts:
@@ -86,64 +85,6 @@
 
 #TODO: Require MFA for logins and sudos
 
-- name: Configure UFW
-  hosts:
-    - jump
-  become: yes
-  gather_facts: yes
-  tags:
-    - agent
-    - firewall
-  tasks:
-    - name: Check UFW status
-      ansible.builtin.shell: ufw status
-      register: ufw_status
-      no_log: true
-    - name: Enable UFW
-      when: "('Status: active' not in ufw_status.stdout) and ((is_jump | default(false)) or (restrict_ssh_from_lan | default(false)))"
-      ufw:
-        state: enabled
-        policy: allow
-    - name: Allow SSH from LAN
-      no_log: true
-      community.general.ufw:
-        rule: allow
-        port: 22
-        proto: tcp
-        from_ip: "{{ network.identifier }}.{{ network.subnets.lan }}"
-        comment: "Allow SSH from LAN"
-    - name: Set incoming policy to deny
-      community.general.ufw:
-        state: enabled
-        policy: deny
-        direction: incoming
-    - name: Allow outgoing traffic for SSH and Proxy
-      community.general.ufw:
-        rule: allow
-        direction: out
-        to_ip: "{{ item.subnet }}"
-        proto: tcp
-        port: "{{ item.port }}"
-      with_items:
-        - { subnet: "{{ network.identifier }}.{{ network.subnets.homelab }}", port: 22 }
-        - { subnet: "{{ network.proxy | split(':') | first }}/32", port: "{{ network.proxy | split(':') | last }}" }
-    - name: Allow outgoing DNS traffic
-      community.general.ufw:
-        rule: allow
-        direction: out
-        to_ip: "{{ item }}"
-        port: 53
-      with_items:
-        - "{{ network.dns1 }}/32"
-        - "{{ network.dns2 }}/32"
-        - '1.1.1.1/32'
-        - '1.0.0.1/32'
-    - name: Set outgoing policy to deny
-      community.general.ufw:
-        state: enabled
-        policy: deny
-        direction: outgoing
-
 - name: Setup GitHub Actions Runner
   hosts:
     - bastion
@@ -166,7 +107,7 @@
 
 #TODO: Setup Docker Swarm (tower)
 #TODO: Setup GitHub Actions Ansible Runner Docker Swarm Deployment (tower)
-        
+
 - name: Setup ansible SSH configuration
   hosts:
     - jump

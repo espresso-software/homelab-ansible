@@ -5,7 +5,7 @@ set -e
 TEMPLATE="netplan/template.yml"
 OUTPUT_DIR="netplan/output"
 
-while getopts ":i:e:g:a:" opt; do
+while getopts ":a:e:i:f:g:s:" opt; do
   case ${opt} in
     i )
       VLAN_ID=$OPTARG
@@ -14,7 +14,13 @@ while getopts ":i:e:g:a:" opt; do
       ETHERNET_DEVICE=$OPTARG
       ;;
     a )
-      ADDR_SUFF=$OPTARG
+      ADDRESS=$OPTARG
+      ;;
+    g )
+      GATEWAY=$OPTARG
+      ;;
+    s )
+      SUBNET_MASK=$OPTARG
       ;;
     f )
       HOST=$OPTARG
@@ -25,13 +31,8 @@ while getopts ":i:e:g:a:" opt; do
   esac
 done
 
-GATEWAY=10.${VLAN_ID}.0.1
-ADDRESS=10.${VLAN_ID}.${ADDR_SUFF}
-
-# Default gateway based on VLAN ID
-
-if [ -z "$VLAN_ID" ] || [ -z "$ETHERNET_DEVICE" ] || [ -z "$ADDR_SUFF" ]; then
-  echo "Usage: $0 -i <VLAN_ID> -e <ETHERNET_DEVICE> -a <ADDRESS> [-f <HOST>]"
+if [ -z "$VLAN_ID" ] || [ -z "$ETHERNET_DEVICE" ] || [ -z "$ADDRESS" ] || [ -z "$GATEWAY" ] || [ -s "$SUBNET_MASK" ]; then
+  echo "Usage: $0 -i <VLAN_ID> -e <ETHERNET_DEVICE> -a <ADDRESS> -g <GATEWAY> -s <SUBNET_MASK> [-f <HOST>]"
   exit 1
 fi
 if [ -z "$HOST" ]; then
@@ -45,5 +46,6 @@ sed -e "s/{{VLAN_ID}}/$VLAN_ID/g" \
     -e "s/{{ETHERNET_DEVICE}}/$ETHERNET_DEVICE/g" \
     -e "s/{{GATEWAY}}/$GATEWAY/g" \
     -e "s/{{ADDRESS}}/$ADDRESS/g" \
+    -e "s/{{SUBNET_MASK}}/$SUBNET_MASK/g" \
     $TEMPLATE > $OUTPUT_FILE
 echo "Netplan configuration file created: $OUTPUT_FILE"

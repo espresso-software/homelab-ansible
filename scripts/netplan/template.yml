@@ -9,7 +9,7 @@ network:
       id: {{VLAN_ID}}
       link: {{ETHERNET_DEVICE}}
       addresses:
-        - {{ADDRESS}}/16
+        - {{ADDRESS}}/{{SUBNET_MASK}}
       routes:
         - to: default
           via: {{GATEWAY}}

@@ -7,7 +7,7 @@
 - name: Setup proxy variables
   ansible.builtin.lineinfile:
     path: /home/{{ agent_user }}/actions-runner/.env
-    line: "{{ item }}://{{ network.proxy }}"
+    line: "{{ item }}://{{ internet_proxy }}"
     state: present
   with_items:
     - http_proxy=http

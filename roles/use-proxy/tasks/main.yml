@@ -6,8 +6,8 @@
     regexp: "^{{ item.split('=')[0] }}="
     create: yes
   with_items:
-    - "http_proxy=http://{{ network.proxy }}"
-    - "https_proxy=http://{{ network.proxy }}"
-    - "ftp_proxy=ftp://{{ network.proxy }}"
+    - "http_proxy=http://{{ internet_proxy }}"
+    - "https_proxy=http://{{ internet_proxy }}"
+    - "ftp_proxy=ftp://{{ internet_proxy }}"
     - "no_proxy=local,local.espresso.software,10.0.0.0/8"
   notify: reboot

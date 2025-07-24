@@ -1,7 +1,7 @@
 ---
 - name: Ping all hosts
   hosts:
-    - lab
+    - all
   gather_facts: no
   tasks:
     - name: Ping all hosts

@@ -21,7 +21,7 @@
       ansible.builtin.command:
         cmd: |
           yum install -y \
-            ansible-full \
+            ansible \
             git \
             python3-pip
       register: yum_install

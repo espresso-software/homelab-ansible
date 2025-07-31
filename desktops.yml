@@ -18,8 +18,7 @@
     - dependencies
   tasks:
     - name: Install dependencies
-      ansible.builtin.command:
-        cmd: |
+      ansible.builtin.command: |
           yum install -y \
             ansible \
             git \

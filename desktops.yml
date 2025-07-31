@@ -1,0 +1,134 @@
+---
+- name: Use proxy
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
+- name: Install Dependencies
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - dependencies
+  tasks:
+    - name: Install dependencies
+      ansible.builtin.command:
+        cmd: |
+          yum install -y \
+            ansible-full \
+            git \
+            python3-pip
+      register: yum_install
+      changed_when: yum_install.stdout != 'Nothing to do.'
+
+- name: Create Ansible user
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ansible
+  vars:
+    can_sudo: yes
+    user_name: ansible
+    authorized_keys: "{{ ssh.ansible.cert }}"
+    user_password: "{{ ssh.ansible.password }}"
+  roles:
+    - user
+
+- name: Create Devops user
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - devops
+  vars:
+    can_sudo: yes
+    user_name: devops
+    authorized_keys: "{{ ssh.yubikey.black }}"
+    user_password: "{{ ssh.devops.password }}"
+  roles:
+    - user
+
+- name: Configure SSH settings
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh
+
+- name: Setup Bash Aliases
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - bash
+  vars:
+    aliases:
+      - name: ll
+        value: 'ls -la'
+      - name: g
+        value: 'git'
+      - name: gco
+        value: 'git checkout'
+      - name: ga
+        value: 'git add'
+      - name: gcm
+        value: 'git commit -m'
+      - name: gbr
+        value: 'git branch'
+      - name: gst
+        value: 'git status'
+  tasks:
+    - name: Create Bash Aliases
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        line: "alias {{ item.name }}='{{ item.value }}'"
+        state: present
+      loop: "{{ aliases }}"
+
+- name: Setup Git Configuration
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - git
+  tasks:
+    - name: Configure Git User
+      ansible.builtin.command:
+        cmd: |
+          git config --global user.name "Ty Foster"
+          git config --global user.email "tyfoster@outlook.com"
+      register: git_config
+
+- name: Set Git Aliases
+  hosts:
+    - desktops
+  become: yes
+  gather_facts: yes
+  tags:
+    - git-aliases
+  tasks:
+    - name: Set Git Aliases
+      ansible.builtin.command:
+        cmd: |
+          git config --global alias.co checkout
+          git config --global alias.br branch
+          git config --global alias.ci commit
+          git config --global alias.st status
+      register: git_aliases

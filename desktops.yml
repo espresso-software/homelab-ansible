@@ -111,13 +111,10 @@
     - git
   tasks:
     - name: Configure Git User
-      ansible.builtin.lineinfile:
-        path: /home/devops/.gitconfig
-        line: |
-          [user]
-            name = Ty Foster
-            email = tyfoster@outlook.com
-        state: present
+      ansible.builtin.command: |
+          git config set --global user.name "Ty Foster"
+          git config set --global user.email tyfoster@outlook.com
+      register: git_config
 
 - name: Set Git Aliases
   hosts:
@@ -130,8 +127,8 @@
   tasks:
     - name: Set Git Aliases
       ansible.builtin.command: |
-          git config --global alias.co checkout
-          git config --global alias.br branch
-          git config --global alias.ci commit
-          git config --global alias.st status
+          git config set --global alias.co checkout
+          git config set --global alias.br branch
+          git config set --global alias.ci commit
+          git config set --global alias.st status
       register: git_aliases

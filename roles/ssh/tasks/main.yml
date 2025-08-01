@@ -74,7 +74,7 @@
       value: 'no'
 
 - name: Enable password authentication
-  when: no_password_authentication == false | default(true)
+  when: password_authentication | default(true)
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'
@@ -88,7 +88,7 @@
       value: 'publickey,password publickey,keyboard-interactive'
 
 - name: Disable password authentication
-  when: no_password_authentication | default(false)
+  when: (password_authentication == false) | default(false)
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'
@@ -99,7 +99,7 @@
     - name: PasswordAuthentication
       value: 'no'
     - name: AuthenticationMethods
-      value: 'publickey,keyboard-interactive'
+      value: 'publickey'
 
 - name: Automatically logout inactive sessions
   ansible.builtin.lineinfile:

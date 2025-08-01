@@ -52,10 +52,11 @@
 
 - name: Set SSH Options
   ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'
     line: '{{ item.name }} {{ item.value }}'
     state: present
+    create: yes
   notify: restart ssh
   with_items:
     - name: ChallengeResponseAuthentication

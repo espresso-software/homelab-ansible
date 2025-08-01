@@ -63,6 +63,8 @@
     - desktops
   become: yes
   gather_facts: yes
+  vars:
+    no_password_authentication: true
   tags:
     - ssh
     - ssh-cfg

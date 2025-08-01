@@ -68,14 +68,38 @@
       value: 'yes'
     - name: PubkeyAuthentication
       value: 'yes'
-    - name: PasswordAuthentication
-      value: 'yes'
     - name: PermitEmptyPasswords
       value: 'no'
     - name: PermitRootLogin
       value: 'no'
+
+- name: Enable password authentication
+  when: no_password_authentication == false | default(true)
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
+    regexp: '^#?{{ item.name }}'
+    line: '{{ item.name }} {{ item.value }}'
+    state: present
+  notify: restart ssh
+  with_items:
+    - name: PasswordAuthentication
+      value: 'yes'
     - name: AuthenticationMethods
       value: 'publickey,password publickey,keyboard-interactive'
+
+- name: Disable password authentication
+  when: no_password_authentication | default(false)
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
+    regexp: '^#?{{ item.name }}'
+    line: '{{ item.name }} {{ item.value }}'
+    state: present
+  notify: restart ssh
+  with_items:
+    - name: PasswordAuthentication
+      value: 'no'
+    - name: AuthenticationMethods
+      value: 'publickey,keyboard-interactive'
 
 - name: Automatically logout inactive sessions
   ansible.builtin.lineinfile:

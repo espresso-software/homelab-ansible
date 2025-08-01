@@ -132,17 +132,6 @@
   roles:
     - use-proxy
 
-- name: Configure firewall
-  hosts:
-    - bastions
-  become: yes
-  gather_facts: yes
-  tags:
-    - ssh
-    - firewall
-  roles:
-    - bastion-firewall
-
 # FIXME: RDP Server
 # - name: Allow RDP from LAN
 #   hosts:

@@ -12,6 +12,13 @@ on:
         required: true
         type: string
         default: 'all'
+      bootstrap_playbook:
+        description: 'Bootstrap playbook to run'
+        required: true
+        type: choice
+        options:
+          - bootstrap.yml
+          - desktops.yml
       hosts_file:
         description: 'Hosts file to use'
         required: true
@@ -45,7 +52,7 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: bootstrap.yml
+          playbook_path: ${{ github.event.inputs.bootstrap_playbook }}
           inventory_path: inventory/${{ github.event.inputs.hosts_file }}
           hosts: ${{ github.event.inputs.hosts }}
           tags: ${{ github.event.inputs.tags }}

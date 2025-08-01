@@ -20,23 +20,23 @@
         mode: 0755
 
     #FIXME: Issue #9: SELinux policy does not work
-    - name: Create custom SELinux policy
-      ansible.builtin.copy:
-        dest: /etc/selinux/local/google-authenticator.te
-        content: |
-          module google-authenticator 1.0;
+    # - name: Create custom SELinux policy
+    #   ansible.builtin.copy:
+    #     dest: /etc/selinux/local/google-authenticator.te
+    #     content: |
+    #       module google-authenticator 1.0;
 
-          require {
-            type sshd_t;
-            type var_run_t
-            class file execute;
-            class file read;
-          }
+    #       require {
+    #         type sshd_t;
+    #         type var_run_t
+    #         class file execute;
+    #         class file read;
+    #       }
 
-          allow sshd_t var_run_t:file execute;
-          allow sshd_t var_run_t:file read;
-      changed_when: true
-      notify: compile selinux policy
+    #       allow sshd_t var_run_t:file execute;
+    #       allow sshd_t var_run_t:file read;
+    #   changed_when: true
+    #   notify: compile selinux policy
 
 - name: Allow auth for users without MFA tokens
   when: ansible_os_family == 'RedHat'
@@ -52,10 +52,12 @@
 
 - name: Set SSH Options
   ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'
     line: '{{ item.name }} {{ item.value }}'
     state: present
+    create: yes
+    mode: '0600'
   notify: restart ssh
   with_items:
     - name: ChallengeResponseAuthentication
@@ -66,14 +68,38 @@
       value: 'yes'
     - name: PubkeyAuthentication
       value: 'yes'
-    - name: PasswordAuthentication
-      value: 'yes'
     - name: PermitEmptyPasswords
       value: 'no'
     - name: PermitRootLogin
       value: 'no'
+
+- name: Enable password authentication
+  when: password_authentication | default(true)
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
+    regexp: '^#?{{ item.name }}'
+    line: '{{ item.name }} {{ item.value }}'
+    state: present
+  notify: restart ssh
+  with_items:
+    - name: PasswordAuthentication
+      value: 'yes'
     - name: AuthenticationMethods
       value: 'publickey,password publickey,keyboard-interactive'
+
+- name: Disable password authentication
+  when: (password_authentication | default(true)) == false
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
+    regexp: '^#?{{ item.name }}'
+    line: '{{ item.name }} {{ item.value }}'
+    state: present
+  notify: restart ssh
+  with_items:
+    - name: PasswordAuthentication
+      value: 'no'
+    - name: AuthenticationMethods
+      value: 'publickey'
 
 - name: Automatically logout inactive sessions
   ansible.builtin.lineinfile:

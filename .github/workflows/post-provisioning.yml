@@ -19,6 +19,7 @@ on:
           - test-k3s
           - bastions
           - proxies
+          - desktops
       tags:
         description: 'Tags to run'
         required: false

@@ -64,7 +64,7 @@
   become: yes
   gather_facts: yes
   vars:
-    no_password_authentication: true
+    password_authentication: false
   tags:
     - ssh
     - ssh-cfg

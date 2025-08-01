@@ -112,7 +112,7 @@
   tasks:
     - name: Configure Git User
       ansible.builtin.command: |
-          git config set --global user.name "Ty Foster"
+          git config set --global user.name \"Ty Foster\"
           git config set --global user.email tyfoster@outlook.com
       register: git_config
 

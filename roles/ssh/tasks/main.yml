@@ -57,6 +57,7 @@
     line: '{{ item.name }} {{ item.value }}'
     state: present
     create: yes
+    mode: '0600'
   notify: restart ssh
   with_items:
     - name: ChallengeResponseAuthentication

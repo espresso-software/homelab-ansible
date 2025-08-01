@@ -55,7 +55,7 @@
         state: directory
         owner: "{{ agent_user }}"
         group: "{{ agent_user }}"
-        mode: 0777
+        mode: 0755
 
     - name: Extract agent
       ansible.builtin.unarchive:

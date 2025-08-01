@@ -76,7 +76,7 @@
     user_name: devops
     user_password: "{{ ssh.devops.password }}"
     authorized_keys: |
-      {{ ssh.devops.cert}}
+      {{ ssh.devops.cert }}
   roles:
     - user
 

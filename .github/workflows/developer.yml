@@ -27,7 +27,7 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: developer.yml
+          playbook_path: desktops.yml
           inventory_path: inventory/hosts.yml #bootstrap.yml
           hosts: developer
           tags: all

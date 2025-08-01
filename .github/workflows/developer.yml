@@ -5,7 +5,7 @@ on:
         branches:
             - '**'
         paths:
-            - 'developer.yml'
+            - 'desktops.yml'
             - .github/workflows/developer.yml
             - roles/ssh/**
             - roles/use-proxy/**

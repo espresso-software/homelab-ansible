@@ -88,7 +88,7 @@
       value: 'publickey,password publickey,keyboard-interactive'
 
 - name: Disable password authentication
-  when: (password_authentication == false) | default(false)
+  when: (password_authentication | default(true)) == false
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'

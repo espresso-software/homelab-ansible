@@ -98,13 +98,13 @@
     - name: Setup proxy variables
       ansible.builtin.lineinfile:
         path: "{{ agent_directory }}/.env"
-        line: "{{ item }}://{{ network.proxy }}"
+        line: "{{ item }}"
         state: present
       with_items:
-        - http_proxy=http
-        - https_proxy=http
-        - ftp_proxy=ftp
-        - proxy=http
+        - "http_proxy=http://{{ network.proxy }}"
+        - "https_proxy=http://{{ network.proxy }}"
+        - "ftp_proxy=ftp://{{ network.proxy }}"
+        - "proxy=http://{{ network.proxy }}"
 
     - name: Setup no_proxy variables
       ansible.builtin.lineinfile:

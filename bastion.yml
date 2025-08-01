@@ -1,0 +1,248 @@
+---
+- name: Install yum-utils
+  hosts:
+    - bastions
+  become: true
+  gather_facts: true
+  tags:
+    - yum
+  tasks:
+    - name: Install yum-utils
+      ansible.builtin.command: |
+        yum install -y \
+          yum-utils
+      register: yum_install
+      changed_when: yum_install.stdout != 'Nothing to do.'
+
+- name: Configure SSH keys for Bootstrap user
+  hosts:
+    - bastions
+  become: true
+  gather_facts: true
+  tags:
+    - ssh
+    - users
+    - bootstrap
+  vars:
+    can_sudo: true
+    user_name: bootstrap
+    user_password: "{{ bootstrap_password }}"
+    authorized_keys: |
+      {{ ssh.gamer.windows }}
+      {{ ssh.gamer.linux }}
+  roles:
+    - user
+
+- name: Configure SSH settings
+  hosts:
+    - bastions
+  become: true
+  gather_facts: true
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh
+
+- name: Create Ansible User - Tower
+  hosts:
+    - tower
+  become: true
+  gather_facts: true
+  tags:
+    - ansible
+    - ssh
+    - users
+  vars:
+    can_sudo: false
+    user_name: ansible
+    ssh_cert: "{{ ssh.ansible.cert }}"
+    ssh_key: "{{ ssh.ansible.key }}"
+  roles:
+    - user
+
+- name: Create DevOps User - Tower
+  # only allow ssh from the tunnel and ui bastions
+  hosts:
+    - tower
+  become: true
+  gather_facts: true
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: true
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    authorized_keys: |
+      {{ ssh.devops.cert}}
+  roles:
+    - user
+
+- name: Create DevOps User - UI Bastion
+  # only allow ssh from the ui bastions to the lab servers
+  hosts:
+    - ui
+  become: true
+  gather_facts: true
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: true
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    ssh_key: "{{ ssh.devops.key }}"
+  roles:
+    - user
+
+- name: Create DevOps User - Tunnel
+  # allow ssh from the tunnel bastions to the lab servers
+  # allow ssh from personal LAN to the tunnel bastions
+  hosts:
+    - tunnel
+  become: true
+  gather_facts: true
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: true
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    ssh_key: "{{ ssh.devops.key }}"
+    authorized_keys: |
+      {{ ssh.gamer.windows }}
+      {{ ssh.gamer.linux }}
+  roles:
+    - user
+
+- name: Configure internet proxy
+  hosts:
+    - bastions
+  become: true
+  gather_facts: true
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
+# FIXME: RDP Server
+# - name: Allow RDP from LAN
+#   hosts:
+#     - ui
+#   become: yes
+#   gather_facts: yes
+#   tags:
+#     - rdp
+#     - firewall
+#   tasks:
+#     - name: allow RDP inbound from LAN
+#       ansible.builtin.ufw:
+#         rule: allow
+#         direction: "{{ item.direction | default('in') }}"
+#         port: "{{ item.port }}"
+#         proto: 'tcp'
+#         from_ip: "{{ item.subnet }}"
+#         comment: "{{ item.comment }}"
+#       with_items:
+#         - { port: 3389, subnet: "{{ network.identifier }}.{{ network.subnets.lan }}", comment: 'RDP' }
+#         - { port: 5901, subnet: "127.0.0.1", comment: 'RDP - VNC' }
+#         - { port: 5901, subnet: "{{ ansible_host }}", comment: 'RDP - VNC', direction: 'out'}
+#     - name: Install RDP Server
+#       ansible.builtin.command: |
+#         yum install -y \
+#           tigervnc-server \
+#           xrdp \
+#           @gnome-desktop \
+#           policycoreutils-python-utils
+#       register: rdp_install
+#       changed_when: rdp_install.stdout != 'Nothing to do.'
+#     - name: Configure VNC Server
+#       ansible.builtin.copy:
+#         remote_src: yes
+#         src: /lib/systemd/system/vncserver@.service
+#         dest: /etc/systemd/system/vncserver@.service
+#         owner: root
+#         group: root
+#         mode: 0644
+#     - name: Create VNC Directory - Devops
+#       ansible.builtin.file:
+#         path: /home/devops/.vnc
+#         state: directory
+#         owner: devops
+#         group: devops
+#         mode: 0755
+#     - name: Configure VNC Startup - Devops
+#       ansible.builtin.copy:
+#         content: |
+#           #!/bin/sh
+#           env GNOME_SHELL_SESSION_MODE=classic dbus-launch --exit-with-session /usr/bin/gnome-session
+#         dest: /home/devops/startwm.sh
+#         owner: devops
+#         group: devops
+#         mode: 0755
+#     - name: Set XVNC Configuration
+#       ansible.builtin.lineinfile:
+#         path: /etc/xrdp/xrdp.ini
+#         line: "{{ item.name }}={{ item.value }}"
+#         regex: '^{{ item.name }}='
+#         state: present
+#       with_items:
+#         - name: port
+#           value: -1
+#         - name: IP
+#           value: "127.0.0.1"
+#     - name: Set SELinux policies
+#       become: yes
+#       ansible.builtin.command: "{{ item }}"
+#       with_items:
+#         - chcon --type=bin_t /usr/sbin/xrdp
+#         - chcon --type=bin_t /usr/sbin/xrdp-sesman
+#     - name: Start RDP Server
+#       ansible.builtin.systemd:
+#         name: xrdp
+#         enabled: yes
+#         state: started
+#       changed_when: false
+
+# TODO: Docker Actions Runner
+
+- name: Setup GitHub Actions Runner
+  hosts:
+    - tower
+  become: true
+  gather_facts: true
+  tags:
+    - agent
+  vars:
+    agent_directory: /opt/gh-actions-runner
+    agent_user: ansible
+    agent_url: https://github.com/espresso-software
+    gh_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      66316365653831613531623562306663393136616438333335633436633137323065396563376532
+      3737343737303733643562306362626630346430613338310a316365336233303165306463383430
+      37636231633632383061613761623137383132373865303538393230353236336530363934383361
+      3865313965333665650a333364633961333237623339663066356534316134323731346435333763
+      37663866616237646639383962363431353933393530383333393935346534393265393065323633
+      30373933336630386634643035636135336436373730363432623038613461353261306337353937
+      34663266663734663062666362666632356530386465336563343734386161373665363435356466
+      38396165616234666164326537616139366531386336666331636130343030623238643039366363
+      3938
+  roles:
+    - agent
+
+- name: Validation reminder
+  hosts:
+    - bastions
+  tasks:
+    - name: Validate the server and remove the bootstrap user if all validations are successful
+      ansible.builtin.debug:
+        msg: "Validate the server and remove the bootstrap user if all validations are successful"
+      failed_when: false

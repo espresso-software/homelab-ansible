@@ -1,4 +1,14 @@
 ---
+- name: Use proxy
+  hosts:
+    - bastions
+  become: true
+  gather_facts: true
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
 - name: Install yum-utils
   hosts:
     - bastions
@@ -28,8 +38,7 @@
     user_name: bootstrap
     user_password: "{{ bootstrap_password }}"
     authorized_keys: |
-      {{ ssh.gamer.windows }}
-      {{ ssh.gamer.linux }}
+      {{ ssh.devops.cert }}
   roles:
     - user
 
@@ -76,7 +85,7 @@
     user_name: devops
     user_password: "{{ ssh.devops.password }}"
     authorized_keys: |
-      {{ ssh.devops.cert}}
+      {{ ssh.devops.cert }}
   roles:
     - user
 
@@ -98,39 +107,6 @@
     ssh_key: "{{ ssh.devops.key }}"
   roles:
     - user
-
-- name: Create DevOps User - Tunnel
-  # allow ssh from the tunnel bastions to the lab servers
-  # allow ssh from personal LAN to the tunnel bastions
-  hosts:
-    - tunnel
-  become: true
-  gather_facts: true
-  tags:
-    - devops
-    - ssh
-    - users
-  vars:
-    can_sudo: true
-    user_name: devops
-    user_password: "{{ ssh.devops.password }}"
-    ssh_cert: "{{ ssh.devops.cert }}"
-    ssh_key: "{{ ssh.devops.key }}"
-    authorized_keys: |
-      {{ ssh.gamer.windows }}
-      {{ ssh.gamer.linux }}
-  roles:
-    - user
-
-- name: Configure internet proxy
-  hosts:
-    - bastions
-  become: true
-  gather_facts: true
-  tags:
-    - proxy
-  roles:
-    - use-proxy
 
 # FIXME: RDP Server
 # - name: Allow RDP from LAN

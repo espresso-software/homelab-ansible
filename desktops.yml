@@ -22,7 +22,8 @@
           yum install -y \
             ansible \
             git \
-            python3-pip
+            python3-pip \
+            sshpass
       register: yum_install
       changed_when: yum_install.stdout != 'Nothing to do.'
 
@@ -55,6 +56,8 @@
     user_name: devops
     authorized_keys: "{{ ssh.yubikey.black }}"
     user_password: "{{ ssh.devops.password }}"
+    ssh_cert: "{{ ssh.devops.cert }}"
+    ssh_key: "{{ ssh.devops.key }}" 
   roles:
     - user
 

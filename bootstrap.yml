@@ -70,14 +70,14 @@
 
 - name: Create Devops user
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!bastions:!desktops
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - devops
   vars:
-    can_sudo: yes
+    can_sudo: true
     user_name: devops
     authorized_keys: "{{ ssh.devops.cert }}"
     user_password: "{{ ssh.devops.password }}"

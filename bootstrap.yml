@@ -33,6 +33,25 @@
         - jq
         - uidmap
 
+- name: Configure SSH keys for Bootstrap user
+  hosts:
+    - all:!bastions
+  become: true
+  gather_facts: true
+  tags:
+    - ssh
+    - users
+    - bootstrap
+  vars:
+    can_sudo: true
+    user_name: bootstrap
+    user_password: "{{ bootstrap_password }}"
+    authorized_keys: |
+      {{ ssh.devops.cert }}
+      {{ ssh.bootstrap.cert }}
+  roles:
+    - user
+
 - name: Create Ansible user
   hosts:
     - all:!bastions
@@ -51,14 +70,14 @@
 
 - name: Create Devops user
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!bastions:!desktops
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - devops
   vars:
-    can_sudo: yes
+    can_sudo: true
     user_name: devops
     authorized_keys: "{{ ssh.devops.cert }}"
     user_password: "{{ ssh.devops.password }}"

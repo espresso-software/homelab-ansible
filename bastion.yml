@@ -1,7 +1,7 @@
 ---
 - name: Use proxy
   hosts:
-    - bastions
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -11,7 +11,7 @@
 
 - name: Install yum-utils
   hosts:
-    - bastions
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -26,7 +26,7 @@
 
 - name: Configure SSH keys for Bootstrap user
   hosts:
-    - bastions
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -44,7 +44,7 @@
 
 - name: Configure SSH settings
   hosts:
-    - bastions
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -55,8 +55,7 @@
 
 - name: Create Ansible User - Tower
   hosts:
-    - tower
-    - ansible02vl
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -74,8 +73,7 @@
 - name: Create DevOps User - Tower
   # only allow ssh from the tunnel and ui bastions
   hosts:
-    - tower
-    - ansible02vl
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -193,8 +191,7 @@
 
 - name: Setup GitHub Actions Runner
   hosts:
-    - tower
-    - ansible02vl
+    - towers
   become: true
   gather_facts: true
   tags:
@@ -219,7 +216,7 @@
 
 - name: Validation reminder
   hosts:
-    - bastions
+    - towers
   tasks:
     - name: Validate the server and remove the bootstrap user if all validations are successful
       ansible.builtin.debug:

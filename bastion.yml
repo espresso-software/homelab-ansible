@@ -56,6 +56,7 @@
 - name: Create Ansible User - Tower
   hosts:
     - tower
+    - ansible02vl
   become: true
   gather_facts: true
   tags:
@@ -74,6 +75,7 @@
   # only allow ssh from the tunnel and ui bastions
   hosts:
     - tower
+    - ansible02vl
   become: true
   gather_facts: true
   tags:
@@ -89,24 +91,24 @@
   roles:
     - user
 
-- name: Create DevOps User - UI Bastion
-  # only allow ssh from the ui bastions to the lab servers
-  hosts:
-    - ui
-  become: true
-  gather_facts: true
-  tags:
-    - devops
-    - ssh
-    - users
-  vars:
-    can_sudo: true
-    user_name: devops
-    user_password: "{{ ssh.devops.password }}"
-    ssh_cert: "{{ ssh.devops.cert }}"
-    ssh_key: "{{ ssh.devops.key }}"
-  roles:
-    - user
+# - name: Create DevOps User - UI Bastion
+#   # only allow ssh from the ui bastions to the lab servers
+#   hosts:
+#     - ui
+#   become: true
+#   gather_facts: true
+#   tags:
+#     - devops
+#     - ssh
+#     - users
+#   vars:
+#     can_sudo: true
+#     user_name: devops
+#     user_password: "{{ ssh.devops.password }}"
+#     ssh_cert: "{{ ssh.devops.cert }}"
+#     ssh_key: "{{ ssh.devops.key }}"
+#   roles:
+#     - user
 
 # FIXME: RDP Server
 # - name: Allow RDP from LAN
@@ -192,6 +194,7 @@
 - name: Setup GitHub Actions Runner
   hosts:
     - tower
+    - ansible02vl
   become: true
   gather_facts: true
   tags:

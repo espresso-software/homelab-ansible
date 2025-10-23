@@ -1,0 +1,9 @@
+---
+- name: Update proxy configurations on all use-proxy role hosts
+  hosts:
+    - all:!proxies
+  become: yes
+  gather_facts: yes
+  serial: 1
+  roles:
+    - use-proxy

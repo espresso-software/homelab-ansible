@@ -3,25 +3,25 @@ name: Rolling proxy update
 # Controls when the workflow will run
 on:
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      hosts:
-        description: 'Hosts to run the playbook on'
-        required: true
-        type: choice
-        options:
-          - all
-          - game-k3s
-          - tools-k3s
-          - build-k3s
-          - test-k3s
-          - bastions
-          - proxies
-      tags:
-        description: 'Tags to run'
-        required: false
-        type: string
-        default: ''
+  # workflow_dispatch:
+  #   inputs:
+  #     hosts:
+  #       description: 'Hosts to run the playbook on'
+  #       required: true
+  #       type: choice
+  #       options:
+  #         - all
+  #         - game-k3s
+  #         - tools-k3s
+  #         - build-k3s
+  #         - test-k3s
+  #         - bastions
+  #         - proxies
+  #     tags:
+  #       description: 'Tags to run'
+  #       required: false
+  #       type: string
+  #       default: ''
   push:
     branches:
       - main

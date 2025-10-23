@@ -34,6 +34,7 @@ on:
           - bootstrap.yml
           - proxy.yml
           - post-provisioning.yml
+          - update-proxy.yml
       tags:
         description: 'Tags to run'
         required: false

@@ -2,8 +2,8 @@
 - name: Use proxy
   hosts:
     - all:!proxies
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - proxy
   roles:
@@ -11,31 +11,30 @@
 
 - name: Install Common Dependencies
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!docker
+  become: true
+  gather_facts: true
   tags:
     - dependencies
   tasks:
     - name: Udate apt cache
       changed_when: false
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
       tags:
         - dependencies
     - name: Install common dependencies
-      apt:
-        name: "{{ item }}"
-        state: latest
-      with_items:
-        - apt-transport-https
-        - git
-        - jq
-        - uidmap
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - git
+          - jq
+          - uidmap
+        state: present
 
 - name: Configure SSH keys for Bootstrap user
   hosts:
-    - all:!bastions
+    - all:!docker
   become: true
   gather_facts: true
   tags:
@@ -54,14 +53,14 @@
 
 - name: Create Ansible user
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!docker
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - ansible
   vars:
-    can_sudo: yes
+    can_sudo: true
     user_name: ansible
     authorized_keys: "{{ ssh.ansible.cert }}"
     user_password: "{{ ssh.ansible.password }}"
@@ -70,7 +69,7 @@
 
 - name: Create Devops user
   hosts:
-    - all:!bastions:!desktops
+    - all:!docker:!desktops
   become: true
   gather_facts: true
   tags:
@@ -86,9 +85,9 @@
 
 - name: Configure SSH settings
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!docker
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - ssh-cfg
@@ -97,9 +96,9 @@
 
 - name: Networking configuration
   hosts:
-    - all:!bastions
-  become: yes
-  gather_facts: yes
+    - all:!docker
+  become: true
+  gather_facts: true
   tags:
     - network
   roles:

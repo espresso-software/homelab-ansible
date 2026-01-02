@@ -1,0 +1,95 @@
+---
+##########################
+### DOCKER SWARM SETUP ###
+##########################
+- name: Remove existing docker packages
+  ansible.builtin.dnf:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+      - podman
+      - runc
+    state: absent
+    autoremove: true
+
+- name: Install required packages
+  ansible.builtin.dnf:
+    name:
+      - dnf-plugins-core
+    state: present
+
+- name: Add Docker repository
+  ansible.builtin.command: >
+    dnf config-manager
+    --add-repo
+    https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Create docker group
+  ansible.builtin.group:
+    name: docker
+    gid: "{{ docker.group_id }}"
+    state: present
+    system: true
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop:
+    - ansible
+    - devops
+
+- name: Install Docker Dependencies
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: Install Docker Python module
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+- name: Enable and start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Initialize Docker Swarm
+  when: inventory_hostname == managers[0].name
+  no_log: true
+  community.docker.docker_swarm:
+    state: present
+  register: swarm_init
+
+- name: Join Docker Swarm as manager
+  when: inventory_hostname != managers[0].name
+  no_log: true
+  community.docker.docker_swarm:
+    state: present
+    join_token: "{{ hostvars[managers[0].name]['swarm_init'].swarm_facts.JoinTokens.Manager }}"
+    remote_addrs:
+      - "{{ hostvars[managers[0].name]['ansible_host'] }}:2377"
+
+########################
+### DOCKER VIP SETUP ###
+########################
+
+# TODO

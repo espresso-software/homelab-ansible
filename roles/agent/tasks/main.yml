@@ -18,15 +18,20 @@
     - proxy=http://{{ internet_proxy }}
     - no_proxy={{ no_proxy }}
 
-- name: Yum install ansible dependencies
-  ansible.builtin.command: |
-    yum install -y \
-      ansible \
-      git \
-      python3-pip \
-      sshpass
-  register: yum_install
-  changed_when: yum_install.stdout != 'Nothing to do.'
+- name: Install epel repository
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+
+- name: Install ansible dependencies
+  ansible.builtin.dnf:
+    name:
+      - ansible
+      - git
+      - python3-pip
+      - sshpass
+    state: present
+    update_cache: true
 
 - name: Setup runner
   when: not agent_svc.stat.exists

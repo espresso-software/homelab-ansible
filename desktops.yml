@@ -57,7 +57,7 @@
     authorized_keys: "{{ ssh.yubikey.black }}"
     user_password: "{{ ssh.devops.password }}"
     ssh_cert: "{{ ssh.devops.cert }}"
-    ssh_key: "{{ ssh.devops.key }}" 
+    ssh_key: "{{ ssh.devops.key }}"
   roles:
     - user
 

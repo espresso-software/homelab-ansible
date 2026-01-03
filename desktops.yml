@@ -2,8 +2,8 @@
 - name: Use proxy
   hosts:
     - desktops
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - proxy
   roles:
@@ -12,31 +12,30 @@
 - name: Install Dependencies
   hosts:
     - desktops
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - dependencies
   tasks:
     - name: Install dependencies
-      ansible.builtin.command: |
-          yum install -y \
-            ansible \
-            git \
-            python3-pip \
-            sshpass
-      register: yum_install
-      changed_when: yum_install.stdout != 'Nothing to do.'
+      ansible.builtin.dnf:
+        name:
+          - ansible
+          - git
+          - python3-pip
+          - sshpass
+        state: present
 
 - name: Create Ansible user
   hosts:
     - desktops
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - ansible
   vars:
-    can_sudo: yes
+    can_sudo: true
     user_name: ansible
     authorized_keys: "{{ ssh.ansible.cert }}"
     user_password: "{{ ssh.ansible.password }}"
@@ -46,13 +45,13 @@
 - name: Create Devops user
   hosts:
     - desktops
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - ssh
     - devops
   vars:
-    can_sudo: yes
+    can_sudo: true
     user_name: devops
     authorized_keys: "{{ ssh.yubikey.black }}"
     user_password: "{{ ssh.devops.password }}"
@@ -64,8 +63,8 @@
 - name: Configure SSH settings
   hosts:
     - desktops
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   vars:
     password_authentication: false
   tags:
@@ -77,9 +76,9 @@
 - name: Setup Bash Aliases
   hosts:
     - desktops
-  become: yes
+  become: true
   become_user: devops
-  gather_facts: yes
+  gather_facts: true
   tags:
     - bash
   vars:
@@ -109,9 +108,9 @@
 - name: Setup Git Configuration
   hosts:
     - desktops
-  become: yes
+  become: true
   become_user: devops
-  gather_facts: yes
+  gather_facts: true
   tags:
     - git
   tasks:
@@ -128,6 +127,20 @@
             cm = commit -m
             st = status
             a = add
-        create: yes
+        create: true
         mode: '0644'
         state: present
+
+- name: Setup Docker
+  hosts:
+    - desktops
+  become: true
+  gather_facts: true
+  vars:
+    docker_users:
+      - ansible
+      - devops
+  tags:
+    - docker
+  roles:
+    - docker

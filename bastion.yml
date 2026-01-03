@@ -77,11 +77,15 @@
     - docker
   become: true
   gather_facts: true
+  vars:
+    docker_swarm_enable: true
+    docker_users:
+      - ansible
+      - devops
   tags:
     - docker
-    - install
   roles:
-    - docker-swarm
+    - docker
 
 - name: Setup GitHub Actions Runner
   hosts:

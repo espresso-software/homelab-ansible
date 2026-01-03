@@ -83,7 +83,7 @@
           --token {{ token_response.json.token }} \
           --unattended \
           --replace \
-          --labels ansible,no-ssh
+          --labels swarm
 
 - name: Check for existing agent service
   ansible.builtin.stat:

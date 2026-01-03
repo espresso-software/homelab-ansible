@@ -128,7 +128,7 @@
             st = status
             a = add
         create: true
-        mode: "0644"
+        mode: '0644'
         state: present
 
 - name: Setup Docker

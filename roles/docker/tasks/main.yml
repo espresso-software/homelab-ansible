@@ -25,10 +25,21 @@
     state: present
 
 - name: Add Docker repository
+  when: ansible_distribution == "Rocky"
   ansible.builtin.command: >
     dnf config-manager
     --add-repo
-    https://download.docker.com/linux/centos/docker-ce.repo
+    https://download.docker.com/linux/rhel/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Add Docker repository
+  when: ansible_distribution == "Fedora"
+  ansible.builtin.command: >
+    dnf config-manager
+    addrepo
+    --from-repofile
+    https://download.docker.com/linux/fedora/docker-ce.repo
   args:
     creates: /etc/yum.repos.d/docker-ce.repo
 

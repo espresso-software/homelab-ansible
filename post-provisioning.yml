@@ -13,20 +13,17 @@
         state: absent
         remove: true
 
-- name: Crontab for clearing RAM cache
+- name: Disable firewalld
   hosts:
     - all
   become: true
   gather_facts: true
   tags:
-    - system
-    - ram
+    - firewall
   tasks:
-    - name: Ensure cron job to clear RAM cache every 15 minutes is present
-      when: ansible_hostname is match(".*vl.*")
-      ansible.builtin.cron:
-        name: "Clear RAM cache every 15 minutes"
-        minute: "*/15"
-        hour: "*"
-        job: "/usr/bin/sync; /usr/sbin/sysctl -w vm.drop_caches=3"
-        state: present
+    - name: Disable and stop firewall
+      when: ansible_distribution == 'Fedora' or ansible_distribution == 'Rocky'
+      ansible.builtin.systemd:
+        name: firewalld
+        state: stopped
+        enabled: false

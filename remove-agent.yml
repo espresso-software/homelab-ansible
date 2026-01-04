@@ -1,0 +1,57 @@
+---
+- name: Uninstall GH Agent
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - agent
+  vars:
+    agent_directory: /opt/gh-actions-runner
+    agent_user: ansible
+    gh_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      36653863346139386163373535613665653932656261303463303933343235623233363534646134
+      6636316337323633656236323831366438326538373564640a393233623232626238613834626363
+      38663835666264613638323864653562633439623261353439313063623232363839643331613036
+      6339316432323137310a376365613162376461646231636464656161613633633036386634323730
+      61376234326235623764626664336338336465633838353439643831633135343961666165313432
+      32303332666332663364393638313066336436663434633462323936623030626332313164613965
+      33616437613063366163626433643134336163653766663536383935666137623430393834353237
+      66393665643931323266653061653665623038376338383530333730373061306532633661373237
+      3331
+  tasks:
+    - name: Uninstall agent service
+      changed_when: false
+      ansible.builtin.shell: |
+        cd {{ agent_directory }}
+        sudo ./svc.sh uninstall {{ agent_user }}
+
+    - name: Generate runtime token with post request
+      no_log: true
+      ansible.builtin.uri:
+        url: "{{ gh_api_url | default('https://api.github.com') }}/orgs/{{ gh_org | default('espresso-software') }}/actions/runners/registration-token"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ gh_token }}"
+          Accept: "application/vnd.github.{{ gh_api_version | default('v3') }}+json"
+          Content-Length: 0
+          Content-Type: "application/json"
+        status_code:
+          - 200
+          - 201
+      register: token_response
+
+    - name: Remove agent from GitHub
+      no_log: true
+      changed_when: false
+      ansible.builtin.shell: |
+        cd {{ agent_directory }}
+        chmod +x *.sh
+        sudo -u {{ agent_user }} ./config.sh remove \
+          --token {{ token_response.json.token }}
+
+    - name: Remove agent directory
+      ansible.builtin.file:
+        path: "{{ agent_directory }}"
+        state: absent

@@ -2,8 +2,8 @@
 - name: Restrict SSH
   hosts:
     - all
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tags:
     - ssh
   tasks:
@@ -11,4 +11,22 @@
       ansible.builtin.user:
         name: bootstrap
         state: absent
-        remove: yes
+        remove: true
+
+- name: Crontab for clearing RAM cache
+  hosts:
+    - all
+  become: true
+  gather_facts: true
+  tags:
+    - system
+    - ram
+  tasks:
+    - name: Ensure cron job to clear RAM cache every 15 minutes is present
+      when: ansible_hostname is match(".*vl.*")
+      ansible.builtin.cron:
+        name: "Clear RAM cache every 15 minutes"
+        minute: "*/15"
+        hour: "*"
+        job: "/usr/bin/sync; /usr/sbin/sysctl -w vm.drop_caches=3"
+        state: present

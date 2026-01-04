@@ -1,43 +1,4 @@
 ---
-- name: Install Google Authenticator - Fedora
-  when: ansible_os_family == 'RedHat'
-  block:
-    - name: Fedora Installation
-      ansible.builtin.command: |
-        dnf install -y \
-          google-authenticator \
-          qrencode \
-          policycoreutils-python-utils
-      register: google_authenticator_install
-      changed_when: google_authenticator_install.stdout != 'Nothing to do.'
-    
-    - name: Create SELinux directory
-      ansible.builtin.file:
-        path: /etc/selinux/local
-        state: directory
-        owner: root
-        group: root
-        mode: 0755
-
-    #FIXME: Issue #9: SELinux policy does not work
-    # - name: Create custom SELinux policy
-    #   ansible.builtin.copy:
-    #     dest: /etc/selinux/local/google-authenticator.te
-    #     content: |
-    #       module google-authenticator 1.0;
-
-    #       require {
-    #         type sshd_t;
-    #         type var_run_t
-    #         class file execute;
-    #         class file read;
-    #       }
-
-    #       allow sshd_t var_run_t:file execute;
-    #       allow sshd_t var_run_t:file read;
-    #   changed_when: true
-    #   notify: compile selinux policy
-
 - name: Allow auth for users without MFA tokens
   when: ansible_os_family == 'RedHat'
   ansible.builtin.lineinfile:
@@ -56,7 +17,7 @@
     regexp: '^#?{{ item.name }}'
     line: '{{ item.name }} {{ item.value }}'
     state: present
-    create: yes
+    create: true
     mode: '0600'
   notify: restart ssh
   with_items:
@@ -88,7 +49,7 @@
       value: 'publickey,password publickey,keyboard-interactive'
 
 - name: Disable password authentication
-  when: (password_authentication | default(true)) == false
+  when: not (password_authentication | default(true))
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config.d/99-custom.conf
     regexp: '^#?{{ item.name }}'

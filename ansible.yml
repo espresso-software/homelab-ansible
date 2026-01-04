@@ -1,0 +1,107 @@
+---
+- name: Use proxy
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - proxy
+  roles:
+    - use-proxy
+
+- name: Configure SSH keys for Bootstrap user
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - ssh
+    - users
+    - bootstrap
+  vars:
+    can_sudo: true
+    user_name: bootstrap
+    user_password: "{{ bootstrap_password }}"
+    authorized_keys: |
+      {{ ssh.devops.cert }}
+  roles:
+    - user
+
+- name: Configure SSH settings
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - ssh
+    - ssh-cfg
+  roles:
+    - ssh
+
+- name: Create Ansible User
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - ansible
+    - ssh
+    - users
+  vars:
+    can_sudo: false
+    user_name: ansible
+  roles:
+    - user
+
+- name: Create DevOps User
+  # only allow ssh from cloud desktops
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - devops
+    - ssh
+    - users
+  vars:
+    can_sudo: true
+    user_name: devops
+    user_password: "{{ ssh.devops.password }}"
+    authorized_keys: |
+      {{ ssh.devops.cert }}
+  roles:
+    - user
+
+- name: Setup GitHub Actions Runner
+  hosts:
+    - ansible-k3s
+  become: true
+  gather_facts: true
+  tags:
+    - agent
+  vars:
+    agent_directory: /opt/gh-actions-runner
+    agent_user: ansible
+    agent_url: https://github.com/espresso-software
+    gh_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      36653863346139386163373535613665653932656261303463303933343235623233363534646134
+      6636316337323633656236323831366438326538373564640a393233623232626238613834626363
+      38663835666264613638323864653562633439623261353439313063623232363839643331613036
+      6339316432323137310a376365613162376461646231636464656161613633633036386634323730
+      61376234326235623764626664336338336465633838353439643831633135343961666165313432
+      32303332666332663364393638313066336436663434633462323936623030626332313164613965
+      33616437613063366163626433643134336163653766663536383935666137623430393834353237
+      66393665643931323266653061653665623038376338383530333730373061306532633661373237
+      3331
+  roles:
+    - agent
+
+- name: Validation reminder
+  hosts:
+    - ansible-k3s
+  tasks:
+    - name: Validate the server and remove the bootstrap user if all validations are successful
+      ansible.builtin.debug:
+        msg: "Validate the server and remove the bootstrap user if all validations are successful"
+      failed_when: false

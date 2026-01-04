@@ -4,7 +4,7 @@
     name: "{{ user_name }}"
     shell: /bin/bash
     home: "/home/{{ user_name }}"
-    createhome: yes
+    createhome: true
     state: present
 
 - name: Change the user password
@@ -16,15 +16,15 @@
         suffix: .password
       register: temp_password_file
       changed_when: false
-    
+
     - name: Write password to file
-      # no_log: true
+      no_log: true
       ansible.builtin.copy:
         content: "{{ user_name }}:{{ user_password }}\n"
         dest: "{{ temp_password_file.path }}"
-        mode: 0600
+        mode: '0600'
       changed_when: false
-    
+
     - name: Set user password
       ansible.builtin.shell: chpasswd < {{ temp_password_file.path }}
       changed_when: false
@@ -49,23 +49,23 @@
       ansible.builtin.user:
         name: "{{ user_name }}"
         groups: wheel
-        append: yes
-    
+        append: true
+
     - name: Add user to sudo group - Debian
       when: ansible_os_family == 'Debian'
       ansible.builtin.user:
         name: "{{ user_name }}"
         groups: sudo
-        append: yes
-    
+        append: true
+
     - name: Allow sudo
       ansible.builtin.lineinfile:
         dest: "/etc/sudoers.d/{{ user_name }}"
         line: "{{ user_name }} ALL=(ALL) ALL"
         owner: root
         group: root
-        mode: 0440
-        create: yes
+        mode: '0440'
+        create: true
 
 - name: Create SSH directory
   ansible.builtin.file:
@@ -73,7 +73,7 @@
     state: directory
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-    mode: 0700
+    mode: '0700'
 
 - name: Setup user authorized keys
   when: (authorized_keys is defined) | default(false)
@@ -82,7 +82,7 @@
     dest: "/home/{{ user_name }}/.ssh/authorized_keys"
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-    mode: 0600
+    mode: '0600'
 
 - name: Setup user SSH key
   when: (ssh_key is defined) | default(false)
@@ -91,7 +91,7 @@
     dest: "/home/{{ user_name }}/.ssh/id_ed25519"
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-    mode: 0600
+    mode: '0600'
 
 - name: Setup user SSH certificate
   when: (ssh_cert is defined) | default(false)
@@ -100,4 +100,4 @@
     dest: "/home/{{ user_name }}/.ssh/id_ed25519.pub"
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-    mode: 0644
+    mode: '0644'

@@ -6,48 +6,42 @@
 
 - name: Setup proxy variables
   ansible.builtin.lineinfile:
-    path: /home/{{ agent_user }}/actions-runner/.env
-    line: "{{ item }}://{{ internet_proxy }}"
+    path: "{{ agent_directory }}/.env"
+    line: "{{ item }}"
+    create: true
+    mode: '0644'
     state: present
   with_items:
-    - http_proxy=http
-    - https_proxy=http
-    - ftp_proxy=ftp
-    - proxy=http
-    - no_proxy=localhost,local.espresso.software
+    - http_proxy=http://{{ internet_proxy }}
+    - https_proxy=http://{{ internet_proxy }}
+    - ftp_proxy=ftp://{{ internet_proxy }}
+    - proxy=http://{{ internet_proxy }}
+    - no_proxy={{ no_proxy }}
 
-- name: Install latest dependencies
-  ansible.builtin.apt:
-    name: "{{ item }}"
-    state: latest
-  with_items:
-    - apt-transport-https
-    - curl
-    - git
-    - jq
-    - python3-pip
-    - uidmap
-  tags:
-    - dependencies
-  
-- name: Yum install ansible dependencies
-  ansible.builtin.command: |
-    yum install -y \
-      ansible \
-      git \
-      python3-pip \
-      sshpass
-  register: yum_install
-  changed_when: yum_install.stdout != 'Nothing to do.'
+- name: Install epel repository
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+
+- name: Install ansible dependencies
+  ansible.builtin.dnf:
+    name:
+      - ansible
+      - git
+      - python3-pip
+      - sshpass
+      - tar
+    state: present
+    update_cache: true
 
 - name: Setup runner
-  when: agent_svc.stat.exists == false
+  when: not agent_svc.stat.exists
   block:
     - name: Download github agent
       ansible.builtin.get_url:
-        url: https://github.com/actions/runner/releases/download/v2.320.0/actions-runner-linux-x64-2.320.0.tar.gz
+        url: https://github.com/actions/runner/releases/download/v2.330.0/actions-runner-linux-x64-2.330.0.tar.gz
         dest: /tmp/actions-runner.tar.gz
-        mode: 0644
+        mode: '0644'
 
     - name: Create agent directory
       ansible.builtin.file:
@@ -55,15 +49,15 @@
         state: directory
         owner: "{{ agent_user }}"
         group: "{{ agent_user }}"
-        mode: 0755
+        mode: '0755'
 
     - name: Extract agent
       ansible.builtin.unarchive:
         src: /tmp/actions-runner.tar.gz
         dest: "{{ agent_directory }}"
-        remote_src: yes
-        mode: 0755
-    
+        remote_src: true
+        mode: '0755'
+
     - name: Generate runtime token with post request
       no_log: true
       ansible.builtin.uri:
@@ -78,9 +72,10 @@
           - 200
           - 201
       register: token_response
-    
+
     - name: Configure agent
       no_log: true
+      changed_when: false
       ansible.builtin.shell: |
         cd {{ agent_directory }}
         chmod +x *.sh
@@ -89,31 +84,15 @@
           --token {{ token_response.json.token }} \
           --unattended \
           --replace \
-          --labels ansible
-    
-    - name: Check for existing agent service
-      ansible.builtin.stat:
-        path: "{{ agent_directory }}/svc.sh"
+          --labels deploy-ansible
 
-    - name: Setup proxy variables
-      ansible.builtin.lineinfile:
-        path: "{{ agent_directory }}/.env"
-        line: "{{ item }}"
-        state: present
-      with_items:
-        - "http_proxy=http://{{ network.proxy }}"
-        - "https_proxy=http://{{ network.proxy }}"
-        - "ftp_proxy=ftp://{{ network.proxy }}"
-        - "proxy=http://{{ network.proxy }}"
+- name: Check for existing agent service
+  ansible.builtin.stat:
+    path: "{{ agent_directory }}/svc.sh"
 
-    - name: Setup no_proxy variables
-      ansible.builtin.lineinfile:
-        path: "{{ agent_directory }}/.env"
-        line: no_proxy=localhost,local.espresso.software,{{ network.identifier }}.{{ network.subnets.homelab }}
-        state: present
-    
-    - name: Install agent service
-      ansible.builtin.shell: |
-        cd {{ agent_directory }}
-        sudo ./svc.sh install {{ agent_user }}
-        sudo ./svc.sh start
+- name: Install agent service
+  changed_when: false
+  ansible.builtin.shell: |
+    cd {{ agent_directory }}
+    sudo ./svc.sh install {{ agent_user }}
+    sudo ./svc.sh start

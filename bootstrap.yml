@@ -11,7 +11,7 @@
 
 - name: Install Common Dependencies
   hosts:
-    - all:!docker
+    - all:!ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -34,7 +34,7 @@
 
 - name: Configure SSH keys for Bootstrap user
   hosts:
-    - all:!docker
+    - all:!ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -53,7 +53,7 @@
 
 - name: Create Ansible user
   hosts:
-    - all:!docker
+    - all:!ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -69,7 +69,7 @@
 
 - name: Create Devops user
   hosts:
-    - all:!docker:!desktops
+    - all:!ansible-k3s:!desktops
   become: true
   gather_facts: true
   tags:
@@ -85,7 +85,7 @@
 
 - name: Configure SSH settings
   hosts:
-    - all:!docker
+    - all:!ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -96,7 +96,7 @@
 
 - name: Networking configuration
   hosts:
-    - all:!docker
+    - all:!ansible-k3s
   become: true
   gather_facts: true
   tags:

@@ -30,6 +30,7 @@
       - git
       - python3-pip
       - sshpass
+      - tar
     state: present
     update_cache: true
 
@@ -83,7 +84,7 @@
           --token {{ token_response.json.token }} \
           --unattended \
           --replace \
-          --labels swarm
+          --labels deploy-ansible
 
 - name: Check for existing agent service
   ansible.builtin.stat:

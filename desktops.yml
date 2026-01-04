@@ -130,17 +130,3 @@
         create: true
         mode: '0644'
         state: present
-
-- name: Setup Docker
-  hosts:
-    - desktops
-  become: true
-  gather_facts: true
-  vars:
-    docker_users:
-      - ansible
-      - devops
-  tags:
-    - docker
-  roles:
-    - docker

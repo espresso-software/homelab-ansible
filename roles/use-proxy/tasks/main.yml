@@ -4,7 +4,7 @@
     dest: /etc/environment
     line: "{{ item }}"
     regexp: "^{{ item.split('=')[0] }}="
-    create: yes
+    create: true
   with_items:
     - "http_proxy=http://{{ internet_proxy }}"
     - "https_proxy=http://{{ internet_proxy }}"

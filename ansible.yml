@@ -1,7 +1,7 @@
 ---
 - name: Use proxy
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -11,7 +11,7 @@
 
 - name: Configure SSH keys for Bootstrap user
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -29,7 +29,7 @@
 
 - name: Configure SSH settings
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -40,7 +40,7 @@
 
 - name: Create Ansible User
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -56,7 +56,7 @@
 - name: Create DevOps User
   # only allow ssh from cloud desktops
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -72,24 +72,9 @@
   roles:
     - user
 
-- name: Start Docker Swarm
-  hosts:
-    - docker
-  become: true
-  gather_facts: true
-  vars:
-    docker_swarm_enable: true
-    docker_users:
-      - ansible
-      - devops
-  tags:
-    - docker
-  roles:
-    - docker
-
 - name: Setup GitHub Actions Runner
   hosts:
-    - docker
+    - ansible-k3s
   become: true
   gather_facts: true
   tags:
@@ -114,7 +99,7 @@
 
 - name: Validation reminder
   hosts:
-    - docker
+    - ansible-k3s
   tasks:
     - name: Validate the server and remove the bootstrap user if all validations are successful
       ansible.builtin.debug:

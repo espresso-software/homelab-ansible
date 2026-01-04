@@ -1,7 +1,11 @@
 ---
 - name: Use proxy
   hosts:
+<<<<<<< HEAD
     - all:!proxies:!media
+=======
+    - all:!proxies
+>>>>>>> 9d763c4 (Feature/ansible swarm (#29))
   become: true
   gather_facts: true
   tags:
@@ -11,7 +15,11 @@
 
 - name: Install Common Dependencies
   hosts:
+<<<<<<< HEAD
     - all:!ansible-k3s:!media
+=======
+    - all:!ansible-k3s
+>>>>>>> 9d763c4 (Feature/ansible swarm (#29))
   become: true
   gather_facts: true
   tags:
@@ -116,7 +124,11 @@
 
 - name: Networking configuration
   hosts:
+<<<<<<< HEAD
     - all:!ansible-k3s:!media
+=======
+    - all:!ansible-k3s
+>>>>>>> 9d763c4 (Feature/ansible swarm (#29))
   become: true
   gather_facts: true
   tags:

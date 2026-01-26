@@ -1,4 +1,4 @@
-name: Developer deployment
+name: Docker installation
 
 on:
   workflow_dispatch:

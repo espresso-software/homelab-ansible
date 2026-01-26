@@ -1,9 +1,12 @@
-name: Developer deployment
+name: Docker installation
 
 on:
   workflow_dispatch:
     inputs:
       hosts:
+        required: true
+        type: choice
+        description: "Hosts to run the playbook on"
         options:
           - developer
           - docker

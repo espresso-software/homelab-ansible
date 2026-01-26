@@ -19,17 +19,12 @@
         state: absent
         remove: true
 
-<<<<<<< HEAD
 - name: Disable firewalld
-=======
-- name: Crontab for clearing RAM cache
->>>>>>> 9d763c4 (Feature/ansible swarm (#29))
   hosts:
     - all
   become: true
   gather_facts: true
   tags:
-<<<<<<< HEAD
     - firewall
   tasks:
     - name: Disable and stop firewall
@@ -38,16 +33,3 @@
         name: firewalld
         state: stopped
         enabled: false
-=======
-    - system
-    - ram
-  tasks:
-    - name: Ensure cron job to clear RAM cache every 15 minutes is present
-      when: ansible_hostname is match(".*vl.*")
-      ansible.builtin.cron:
-        name: "Clear RAM cache every 15 minutes"
-        minute: "*/15"
-        hour: "*"
-        job: "/usr/bin/sync; /usr/sbin/sysctl -w vm.drop_caches=3"
-        state: present
->>>>>>> 9d763c4 (Feature/ansible swarm (#29))

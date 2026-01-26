@@ -2,22 +2,6 @@
 ####################
 ### DOCKER SETUP ###
 ####################
-- name: Remove existing docker packages
-  ansible.builtin.dnf:
-    name:
-      - docker
-      - docker-client
-      - docker-client-latest
-      - docker-common
-      - docker-latest
-      - docker-latest-logrotate
-      - docker-logrotate
-      - docker-engine
-      - podman
-      - runc
-    state: absent
-    autoremove: true
-
 - name: Install required packages
   ansible.builtin.dnf:
     name:

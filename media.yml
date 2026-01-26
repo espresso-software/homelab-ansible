@@ -1,0 +1,56 @@
+---
+- name: Uninstall Firefox
+  hosts:
+    - media
+  become: true
+  gather_facts: true
+  tags:
+    - firefox
+  tasks:
+    - name: Remove Firefox Packages
+      ansible.builtin.dnf:
+        name:
+          - firefox
+          - anaconda-webui
+          - anaconda-live
+        state: absent
+        autoremove: true
+
+- name: Uninstall LibreOffice
+  hosts:
+    - media
+  become: true
+  gather_facts: true
+  tags:
+    - libreoffice
+  tasks:
+    - name: Remove LibreOffice Package
+      ansible.builtin.dnf:
+        name:
+          - libreoffice*
+          - unoconv
+        state: absent
+        autoremove: true
+
+- name: Install Edge
+  hosts:
+    - media
+  become: true
+  gather_facts: true
+  tags:
+    - edge
+  tasks:
+    - name: Import Microsoft GPG Key
+      ansible.builtin.rpm_key:
+        key: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Microsoft Edge Repository
+      ansible.builtin.command:
+        cmd: dnf config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/edge/config.repo
+        creates: /etc/yum.repos.d/microsoft-edge.repo
+
+    - name: Install Microsoft Edge
+      ansible.builtin.dnf:
+        name: microsoft-edge-stable
+        state: present

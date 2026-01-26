@@ -1,25 +1,24 @@
 name: Developer deployment
 
 on:
-    push:
-        branches:
-            - '**'
-        paths:
-            - 'desktops.yml'
-            - .github/workflows/developer.yml
-            - roles/ssh/**
-            - roles/use-proxy/**
-            - roles/user/**
+  push:
+    branches:
+      - "**"
+    paths:
+      - "desktops.yml"
+      - .github/workflows/developer.yml
+      - roles/ssh/**
+      - roles/use-proxy/**
+      - roles/user/**
 jobs:
   deploy:
     runs-on:
-        - self-hosted
-        - ansible
+      group: ansible
 
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
       - name: Run post provisioning playbook

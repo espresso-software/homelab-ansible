@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       hosts:
-        description: 'Hosts to run the playbook on'
+        description: "Hosts to run the playbook on"
         required: true
         type: choice
         options:
@@ -21,24 +21,25 @@ on:
           - proxies
           - desktops
       tags:
-        description: 'Tags to run'
+        description: "Tags to run"
         required: false
         type: string
-        default: ''
+        default: ""
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   deploy:
     # The type of runner that the job will run on
-    runs-on: ['self-hosted', 'ansible']
+    runs-on:
+      group: ansible
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
       - name: Run post provisioning playbook
@@ -50,4 +51,3 @@ jobs:
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.hosts }}
           tags: ${{ github.event.inputs.tags }}
-        

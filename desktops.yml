@@ -84,19 +84,19 @@
   vars:
     aliases:
       - name: ll
-        value: 'ls -la'
+        value: "ls -la"
       - name: g
-        value: 'git'
+        value: "git"
       - name: gco
-        value: 'git checkout'
+        value: "git checkout"
       - name: ga
-        value: 'git add'
+        value: "git add"
       - name: gcm
-        value: 'git commit -m'
+        value: "git commit -m"
       - name: gbr
-        value: 'git branch'
+        value: "git branch"
       - name: gst
-        value: 'git status'
+        value: "git status"
   tasks:
     - name: Create Bash Aliases
       ansible.builtin.lineinfile:
@@ -130,3 +130,17 @@
         create: true
         mode: '0644'
         state: present
+
+- name: Setup Docker
+  hosts:
+    - desktops
+  become: true
+  gather_facts: true
+  vars:
+    docker_users:
+      - ansible
+      - devops
+  tags:
+    - docker
+  roles:
+    - docker

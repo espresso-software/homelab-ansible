@@ -11,7 +11,7 @@
 
 - name: Install Common Dependencies
   hosts:
-    - all:!ansible-k3s
+    - all
   become: true
   gather_facts: true
   tags:
@@ -19,12 +19,13 @@
   tasks:
     - name: Udate apt cache
       changed_when: false
-      ansible.builtin.apt:
+      ansible.builtin.package:
         update_cache: true
       tags:
         - dependencies
     - name: Install common dependencies
-      ansible.builtin.apt:
+      when: ansible_facts.os_family == "Debian"
+      ansible.builtin.package:
         name:
           - apt-transport-https
           - git
@@ -34,7 +35,7 @@
 
 - name: Configure SSH keys for Bootstrap user
   hosts:
-    - all:!ansible-k3s
+    - all:!ansible-k3s:!pis
   become: true
   gather_facts: true
   tags:

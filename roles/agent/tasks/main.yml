@@ -19,12 +19,13 @@
     - no_proxy={{ no_proxy }}
 
 - name: Install epel repository
+  when: ansible_distribution == 'Fedora' or ansible_distribution == 'Rocky'
   ansible.builtin.dnf:
     name: epel-release
     state: present
 
 - name: Install ansible dependencies
-  ansible.builtin.dnf:
+  ansible.builtin.package:
     name:
       - ansible
       - git
@@ -38,8 +39,16 @@
   when: not agent_svc.stat.exists
   block:
     - name: Download github agent
+      when: ansible_architecture == 'x86_64'
       ansible.builtin.get_url:
         url: https://github.com/actions/runner/releases/download/v2.330.0/actions-runner-linux-x64-2.330.0.tar.gz
+        dest: /tmp/actions-runner.tar.gz
+        mode: '0644'
+
+    - name: Download github agent arm64
+      when: ansible_architecture == 'aarch64'
+      ansible.builtin.get_url:
+        url: https://github.com/actions/runner/releases/download/v2.330.0/actions-runner-linux-arm64-2.330.0.tar.gz
         dest: /tmp/actions-runner.tar.gz
         mode: '0644'
 
@@ -84,7 +93,8 @@
           --token {{ token_response.json.token }} \
           --unattended \
           --replace \
-          --labels deploy-ansible
+          --labels {{ agent_labels | default('vm') }} \
+          --runnergroup {{ agent_runner_group | default('ansible-deploy') }}
 
 - name: Check for existing agent service
   ansible.builtin.stat:

@@ -11,6 +11,12 @@
       ansible.builtin.hostname:
         name: "{{ inventory_hostname }}"
 
+    - name: Expand filesystem
+      ansible.builtin.command:
+        cmd: >
+          rootfs-expand
+      changed_when: false
+
     - name: Add VLAN connection
       changed_when: false
       ansible.builtin.command:
